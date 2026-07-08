@@ -1,0 +1,178 @@
+/**
+ * Travelpont Úticélok – Frontend CSS
+ *
+ * BRANDING: az összes szín/lekerekítés az alábbi CSS-változókban van,
+ * ugyanazokkal az értékekkel, mint a Travelpont Ajánlatok pluginban –
+ * ha elkészül a végleges arculat, mindkét helyen ugyanígy kell átírni.
+ */
+
+:root {
+    --tpu-primary:       #0e7490;
+    --tpu-primary-dark:  #155e75;
+    --tpu-text:          #1f2937;
+    --tpu-text-light:    #6b7280;
+    --tpu-card-bg:       #ffffff;
+    --tpu-card-border:   #e5e7eb;
+    --tpu-radius:        14px;
+    --tpu-shadow:        0 1px 3px rgba(0, 0, 0, .08);
+    --tpu-shadow-hover:  0 10px 25px rgba(0, 0, 0, .12);
+}
+
+/* ── Kártyarács ─────────────────────────────────────────────────────────── */
+.tpu-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(var(--tpu-card-min, 270px), 1fr));
+    margin: 0 0 2rem;
+    padding: 0;
+}
+
+.tpu-empty {
+    text-align: center;
+    color: var(--tpu-text-light);
+    padding: 2rem 1rem;
+}
+
+/* ── Kártya ─────────────────────────────────────────────────────────────── */
+.tpu-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--tpu-card-bg);
+    border: 1px solid var(--tpu-card-border);
+    border-radius: var(--tpu-radius);
+    box-shadow: var(--tpu-shadow);
+    overflow: hidden;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.tpu-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--tpu-shadow-hover);
+}
+
+.tpu-card-kep-link {
+    display: block;
+    text-decoration: none;
+}
+
+.tpu-card-kep {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: #e0f2fe;
+}
+
+.tpu-card-kep img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    margin: 0;
+}
+
+.tpu-card-kep-ures {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+}
+
+.tpu-card-torzs {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 1.1rem 1.2rem 1.2rem;
+    gap: .6rem;
+}
+
+.tpu-card-cim {
+    margin: 0;
+    font-size: 1.15rem;
+    line-height: 1.35;
+}
+
+.tpu-card-cim a {
+    color: var(--tpu-text);
+    text-decoration: none;
+}
+
+.tpu-card-cim a:hover {
+    color: var(--tpu-primary);
+}
+
+.tpu-card-leiras {
+    margin: 0;
+    font-size: .9rem;
+    color: var(--tpu-text-light);
+    flex: 1;
+}
+
+/* ── Gombok ─────────────────────────────────────────────────────────────── */
+.tpu-gomb {
+    display: inline-block;
+    align-self: flex-start;
+    background: var(--tpu-primary);
+    color: #fff !important;
+    padding: .55rem 1.2rem;
+    border-radius: 999px;
+    font-size: .9rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    text-align: center;
+    white-space: nowrap;
+    transition: background .15s ease;
+}
+
+.tpu-gomb:hover {
+    background: var(--tpu-primary-dark);
+    color: #fff;
+}
+
+/* ── Aloldali úticél-doboz ──────────────────────────────────────────────── */
+.tpu-single-doboz {
+    margin: 0 0 2rem;
+}
+
+.tpu-morzsamenu {
+    font-size: .85rem;
+    color: var(--tpu-text-light);
+    margin: 0 0 1rem;
+}
+
+.tpu-morzsamenu a {
+    color: var(--tpu-primary);
+    text-decoration: none;
+}
+
+.tpu-morzsamenu a:hover {
+    text-decoration: underline;
+}
+
+.tpu-single-leiras {
+    font-size: 1.1rem;
+    color: var(--tpu-text);
+    margin: 0 0 1.5rem;
+}
+
+.tpu-single-alcim {
+    font-size: 1.4rem;
+    margin: 2rem 0 1rem;
+}
+
+.tpu-egyszeru-lista {
+    margin: 0 0 1rem;
+    padding-left: 1.2rem;
+}
+
+.tpu-egyszeru-lista li {
+    margin: 0 0 .4rem;
+}
+
+/* ── Mobil finomítások ──────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .tpu-grid {
+        gap: 1rem;
+    }
+}

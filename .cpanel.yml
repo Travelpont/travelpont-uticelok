@@ -1,0 +1,9 @@
+---
+deployment:
+  tasks:
+    - /bin/cp -R /home/travel24/travelpont-uticelok-deploy/assets /home/travel24/public_html/wp-content/plugins/travelpont-uticelok/
+    - /bin/cp -R /home/travel24/travelpont-uticelok-deploy/includes /home/travel24/public_html/wp-content/plugins/travelpont-uticelok/
+    - /bin/cp -R /home/travel24/travelpont-uticelok-deploy/templates /home/travel24/public_html/wp-content/plugins/travelpont-uticelok/
+    - /bin/cp /home/travel24/travelpont-uticelok-deploy/travelpont-uticelok.php /home/travel24/public_html/wp-content/plugins/travelpont-uticelok/
+    - find /home/travel24/public_html/wp-content/plugins/travelpont-uticelok -type d -exec chmod 755 {} \;
+    - find /home/travel24/public_html/wp-content/plugins/travelpont-uticelok -type f -exec chmod 644 {} \;
