@@ -41,6 +41,25 @@ function tpu_get_fields() {
     return apply_filters( 'tpu_fields', $fields );
 }
 
+// ── Mezőérték sanitizálása típus szerint (meta box mentés ÉS REST API közös) ──
+function tpu_sanitize_field_value( $type, $raw, $field ) {
+    switch ( $type ) {
+        case 'number':
+            return ( $raw === '' ) ? '' : (string) absint( $raw );
+        case 'url':
+            return esc_url_raw( $raw );
+        case 'date':
+            return preg_match( '/^\d{4}-\d{2}-\d{2}$/', $raw ) ? $raw : '';
+        case 'select':
+            $options = isset( $field['options'] ) ? $field['options'] : array();
+            return array_key_exists( $raw, $options ) ? $raw : '';
+        case 'textarea':
+            return sanitize_textarea_field( $raw );
+        default:
+            return sanitize_text_field( $raw );
+    }
+}
+
 // ── Mezőérték lekérése (default-tal) ──────────────────────────────────────────
 function tpu_mezo( $post_id, $key ) {
     $value = get_post_meta( $post_id, $key, true );

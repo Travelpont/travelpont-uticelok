@@ -120,29 +120,9 @@ add_action( 'save_post_uticel', function( $post_id ) {
     foreach ( tpu_get_fields() as $key => $field ) {
         if ( ! isset( $_POST[ $key ] ) ) continue;
 
-        $raw  = wp_unslash( $_POST[ $key ] );
-        $type = isset( $field['type'] ) ? $field['type'] : 'text';
-
-        switch ( $type ) {
-            case 'number':
-                $value = ( $raw === '' ) ? '' : (string) absint( $raw );
-                break;
-            case 'url':
-                $value = esc_url_raw( $raw );
-                break;
-            case 'date':
-                $value = preg_match( '/^\d{4}-\d{2}-\d{2}$/', $raw ) ? $raw : '';
-                break;
-            case 'select':
-                $options = isset( $field['options'] ) ? $field['options'] : array();
-                $value   = array_key_exists( $raw, $options ) ? $raw : '';
-                break;
-            case 'textarea':
-                $value = sanitize_textarea_field( $raw );
-                break;
-            default:
-                $value = sanitize_text_field( $raw );
-        }
+        $raw   = wp_unslash( $_POST[ $key ] );
+        $type  = isset( $field['type'] ) ? $field['type'] : 'text';
+        $value = tpu_sanitize_field_value( $type, $raw, $field );
 
         update_post_meta( $post_id, $key, $value );
     }

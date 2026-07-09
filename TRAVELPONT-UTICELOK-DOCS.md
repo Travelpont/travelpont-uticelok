@@ -72,7 +72,7 @@ travelpont-uticelok/
 │   ├── blog-kapcsolo.php      ← "Úticél" mező a natív Blog bejegyzéseken
 │   ├── shortcodes.php         ← [travelpont_uticelok]
 │   ├── single-display.php     ← úticél-doboz az aloldalon (the_content elé)
-│   └── rest-api.php           ← CSONTVÁZ: csak /status ping (portál helye)
+│   └── rest-api.php           ← teljes CRUD API a Travelpont Portalnak (tpu/v1)
 ├── templates/
 │   ├── lista-template.php     ← kártyarács
 │   ├── card-template.php      ← egy kártya
@@ -116,6 +116,21 @@ select | textarea` típusok).
 ### Branding / színek
 `assets/css/frontend.css` tetején CSS-változók (`--tpu-primary`…) –
 ugyanazokkal az alapértékekkel, mint az Ajánlatok pluginban.
+
+## Portál-kommunikáció (v1.2.0-tól KÉSZ)
+
+`includes/rest-api.php` – teljes CRUD API a Travelpont Portal (Firebase, külön
+repó) Cloud Functions proxyja számára, az aktivbalaton `bsza/v1` mintáját
+követve. Auth: Application Password (Basic Auth) + `publish_posts`.
+
+- `GET /tpu/v1/uticelok` – lista (szűrés: `search`, `status`, `parent`)
+- `GET/PUT /tpu/v1/uticel/{id}`, `POST /tpu/v1/uticel` – egy úticél / létrehozás / frissítés, `parent` paraméterrel (szülő beállítás/módosítás)
+- `POST /tpu/v1/uticel/{id}/kep` – kiemelt kép sideload URL-ből
+- `GET /tpu/v1/meta` – TELJES flat lista (`id`/`title`/`parent`) minden úticélról – ebből épít fastruktúrát a Portál a hierarchikus szülő-választóhoz
+- `GET /tpu/v1/status` – publikus ping
+
+A permalinkeket (nested URL, pl. `/uticelok/orszag/varos/`) a meglévő
+`post_type_link` szűrő adja automatikusan – a REST réteg csak `get_permalink()`-et hív.
 
 ## Telepítés
 
