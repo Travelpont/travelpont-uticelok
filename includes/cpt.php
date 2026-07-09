@@ -45,7 +45,7 @@ function tpu_register_cpt() {
         'menu_position'   => 24,
         'menu_icon'       => 'dashicons-location-alt',
         'supports'        => array( 'title', 'editor', 'thumbnail', 'page-attributes' ),
-        'show_in_rest'    => false, // klasszikus szerkesztő + saját REST namespace később
+        'show_in_rest'    => true,  // blokk-szerkesztő + standard wp/v2 REST (a saját tpu/v1 namespace ettől független)
     );
 
     register_post_type( 'uticel', apply_filters( 'tpu_cpt_args', $args ) );
