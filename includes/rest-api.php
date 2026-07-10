@@ -9,6 +9,8 @@
  *   POST /tpu/v1/uticel            – Úticél létrehozása (szülő megadható)
  *   PUT  /tpu/v1/uticel/{id}       – Úticél frissítése (szülő is módosítható)
  *   POST /tpu/v1/uticel/{id}/kep   – Kiemelt kép sideload URL-ből
+ *   POST /tpu/v1/uticel/{id}/galeria            – Galéria-kép hozzáadása URL-ből
+ *   DELETE /tpu/v1/uticel/{id}/galeria/{kep_id} – Galéria-kép eltávolítása
  *   GET  /tpu/v1/meta              – TELJES flat lista (id/title/parent) a
  *                                    Portál hierarchikus szülő-választójához
  *   GET  /tpu/v1/status            – Publikus ping
@@ -71,6 +73,21 @@ add_action( 'rest_api_init', function() {
         ),
     ) );
 
+    register_rest_route( 'tpu/v1', '/uticel/(?P<id>\d+)/galeria', array(
+        'methods'             => WP_REST_Server::CREATABLE,
+        'callback'            => 'tpu_api_galeria_add',
+        'permission_callback' => 'tpu_api_auth',
+        'args'                => array(
+            'url' => array( 'type' => 'string', 'required' => true ),
+        ),
+    ) );
+
+    register_rest_route( 'tpu/v1', '/uticel/(?P<id>\d+)/galeria/(?P<kep_id>\d+)', array(
+        'methods'             => WP_REST_Server::DELETABLE,
+        'callback'            => 'tpu_api_galeria_remove',
+        'permission_callback' => 'tpu_api_auth',
+    ) );
+
     register_rest_route( 'tpu/v1', '/meta', array(
         'methods'             => WP_REST_Server::READABLE,
         'callback'            => 'tpu_api_meta',
@@ -117,6 +134,7 @@ function tpu_api_format( $post_id ) {
     $parent_id = (int) $post->post_parent;
     $thumb_id  = (int) get_post_thumbnail_id( $post_id );
     $thumb_url = $thumb_id ? wp_get_attachment_image_url( $thumb_id, 'medium_large' ) : '';
+    $galeria_ids = tpu_api_galeria_ids( $post_id );
 
     $data = array(
         'id'            => $post_id,
@@ -129,6 +147,8 @@ function tpu_api_format( $post_id ) {
         'depth'         => count( get_post_ancestors( $post_id ) ),
         'thumbnail_id'  => $thumb_id,
         'thumbnail_url' => $thumb_url ?: '',
+        'galeria_ids'   => $galeria_ids,
+        'galeria_urls'  => tpu_api_galeria_urls( $galeria_ids ),
         'seo_title'     => get_post_meta( $post_id, '_yoast_wpseo_title', true ),
         'seo_metadesc'  => get_post_meta( $post_id, '_yoast_wpseo_metadesc', true ),
         'permalink'     => get_permalink( $post_id ) ?: '',
@@ -292,22 +312,11 @@ function tpu_api_update( WP_REST_Request $req ) {
     return rest_ensure_response( tpu_api_format( $id ) );
 }
 
-// ── POST /tpu/v1/uticel/{id}/kep – Kiemelt kép sideload URL-ből ───────────────
-function tpu_api_sideload_image( WP_REST_Request $req ) {
+// ── Közös: kép letöltése URL-ből és sideload a média könyvtárba ───────────────
+function tpu_download_and_sideload( $post_id, $url ) {
     require_once ABSPATH . 'wp-admin/includes/media.php';
     require_once ABSPATH . 'wp-admin/includes/file.php';
     require_once ABSPATH . 'wp-admin/includes/image.php';
-
-    $post_id = (int) $req->get_param( 'id' );
-    $url     = esc_url_raw( $req->get_param( 'url' ) );
-
-    $post = get_post( $post_id );
-    if ( ! $post || $post->post_type !== 'uticel' ) {
-        return new WP_Error( 'not_found', 'Úticél nem található', array( 'status' => 404 ) );
-    }
-    if ( ! $url ) {
-        return new WP_Error( 'no_url', 'URL megadása kötelező', array( 'status' => 400 ) );
-    }
 
     $tmp = download_url( $url, 30 );
     if ( is_wp_error( $tmp ) ) {
@@ -326,12 +335,88 @@ function tpu_api_sideload_image( WP_REST_Request $req ) {
         return new WP_Error( 'sideload_failed', 'Importálás sikertelen: ' . $attachment_id->get_error_message(), array( 'status' => 500 ) );
     }
 
+    return (int) $attachment_id;
+}
+
+// ── Galéria: nyers ID-lista lekérése + URL-ekre feloldása ─────────────────────
+function tpu_api_galeria_ids( $post_id ) {
+    $ids = get_post_meta( $post_id, 'tpu_galeria_ids', true );
+    return is_array( $ids ) ? array_map( 'intval', $ids ) : array();
+}
+
+function tpu_api_galeria_urls( $ids ) {
+    return array_values( array_filter( array_map( function( $id ) {
+        return wp_get_attachment_image_url( $id, 'medium_large' ) ?: '';
+    }, $ids ) ) );
+}
+
+// ── POST /tpu/v1/uticel/{id}/kep – Kiemelt kép sideload URL-ből ───────────────
+function tpu_api_sideload_image( WP_REST_Request $req ) {
+    $post_id = (int) $req->get_param( 'id' );
+    $url     = esc_url_raw( $req->get_param( 'url' ) );
+
+    $post = get_post( $post_id );
+    if ( ! $post || $post->post_type !== 'uticel' ) {
+        return new WP_Error( 'not_found', 'Úticél nem található', array( 'status' => 404 ) );
+    }
+    if ( ! $url ) {
+        return new WP_Error( 'no_url', 'URL megadása kötelező', array( 'status' => 400 ) );
+    }
+
+    $attachment_id = tpu_download_and_sideload( $post_id, $url );
+    if ( is_wp_error( $attachment_id ) ) return $attachment_id;
+
     set_post_thumbnail( $post_id, $attachment_id );
 
     return rest_ensure_response( array(
         'attachment_id' => $attachment_id,
         'url'           => wp_get_attachment_image_url( $attachment_id, 'medium_large' ) ?: wp_get_attachment_url( $attachment_id ),
         'full_url'      => wp_get_attachment_url( $attachment_id ),
+    ) );
+}
+
+// ── POST /tpu/v1/uticel/{id}/galeria – Galéria-kép hozzáadása URL-ből ─────────
+function tpu_api_galeria_add( WP_REST_Request $req ) {
+    $post_id = (int) $req->get_param( 'id' );
+    $url     = esc_url_raw( $req->get_param( 'url' ) );
+
+    $post = get_post( $post_id );
+    if ( ! $post || $post->post_type !== 'uticel' ) {
+        return new WP_Error( 'not_found', 'Úticél nem található', array( 'status' => 404 ) );
+    }
+    if ( ! $url ) {
+        return new WP_Error( 'no_url', 'URL megadása kötelező', array( 'status' => 400 ) );
+    }
+
+    $attachment_id = tpu_download_and_sideload( $post_id, $url );
+    if ( is_wp_error( $attachment_id ) ) return $attachment_id;
+
+    $ids   = tpu_api_galeria_ids( $post_id );
+    $ids[] = $attachment_id;
+    update_post_meta( $post_id, 'tpu_galeria_ids', $ids );
+
+    return rest_ensure_response( array(
+        'galeria_ids'  => $ids,
+        'galeria_urls' => tpu_api_galeria_urls( $ids ),
+    ) );
+}
+
+// ── DELETE /tpu/v1/uticel/{id}/galeria/{kep_id} – Galéria-kép eltávolítása ────
+function tpu_api_galeria_remove( WP_REST_Request $req ) {
+    $post_id = (int) $req->get_param( 'id' );
+    $kep_id  = (int) $req->get_param( 'kep_id' );
+
+    $post = get_post( $post_id );
+    if ( ! $post || $post->post_type !== 'uticel' ) {
+        return new WP_Error( 'not_found', 'Úticél nem található', array( 'status' => 404 ) );
+    }
+
+    $ids = array_values( array_diff( tpu_api_galeria_ids( $post_id ), array( $kep_id ) ) );
+    update_post_meta( $post_id, 'tpu_galeria_ids', $ids );
+
+    return rest_ensure_response( array(
+        'galeria_ids'  => $ids,
+        'galeria_urls' => tpu_api_galeria_urls( $ids ),
     ) );
 }
 
