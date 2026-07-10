@@ -19,6 +19,10 @@
  * A nested URL-eket (pl. /uticelok/orszag/varos/) a meglévő post_type_link
  * szűrő adja (lásd includes/cpt.php, tpu_get_path()) – ez a réteg csak
  * get_permalink()-et hív, a rewrite-logikát nem kell ismernie.
+ *
+ * Yoast SEO mezők (seo_title/seo_metadesc) a create/update végpontokon keresztül
+ * íródnak/olvasódnak (_yoast_wpseo_title / _yoast_wpseo_metadesc postmeta) – NEM a
+ * tpu_get_fields() rendszer része, mert ezek Yoast saját mezői, nem a plugin sajátjai.
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -94,6 +98,8 @@ function tpu_api_args() {
         'content' => array( 'type' => 'string',  'default'  => '' ),
         'status'  => array( 'type' => 'string',  'default'  => 'publish', 'enum' => array( 'publish', 'draft' ) ),
         'parent'  => array( 'type' => 'integer', 'default'  => 0 ),
+        'seo_title'    => array( 'type' => 'string', 'default' => '' ),
+        'seo_metadesc' => array( 'type' => 'string', 'default' => '' ),
     );
 
     foreach ( tpu_get_fields() as $key => $field ) {
@@ -123,6 +129,8 @@ function tpu_api_format( $post_id ) {
         'depth'         => count( get_post_ancestors( $post_id ) ),
         'thumbnail_id'  => $thumb_id,
         'thumbnail_url' => $thumb_url ?: '',
+        'seo_title'     => get_post_meta( $post_id, '_yoast_wpseo_title', true ),
+        'seo_metadesc'  => get_post_meta( $post_id, '_yoast_wpseo_metadesc', true ),
         'permalink'     => get_permalink( $post_id ) ?: '',
         'edit_url'      => admin_url( "post.php?post={$post_id}&action=edit" ),
         'created_at'    => get_post_field( 'post_date', $post_id ),
@@ -146,6 +154,34 @@ function tpu_api_save_fields( $post_id, WP_REST_Request $req ) {
         $value = tpu_sanitize_field_value( $type, $raw, $field );
 
         update_post_meta( $post_id, $key, $value );
+    }
+
+    if ( $req->get_param( 'seo_title' ) !== null ) {
+        update_post_meta( $post_id, '_yoast_wpseo_title', sanitize_text_field( $req->get_param( 'seo_title' ) ) );
+    }
+    if ( $req->get_param( 'seo_metadesc' ) !== null ) {
+        update_post_meta( $post_id, '_yoast_wpseo_metadesc', sanitize_textarea_field( $req->get_param( 'seo_metadesc' ) ) );
+    }
+    if ( $req->get_param( 'seo_title' ) !== null || $req->get_param( 'seo_metadesc' ) !== null ) {
+        tpu_yoast_indexable_frissit( $post_id );
+    }
+}
+
+// ── Yoast SEO indexable frissítése REST mentés után (lásd travelpont-ajanlatok
+// azonos nevű függvénye, ugyanaz az indoklás: a REST update_post_meta()-ja nem
+// futtatja a Yoast admin save_post hookját, a cache-táblát direktben kell frissíteni) ──
+function tpu_yoast_indexable_frissit( $post_id ) {
+    if ( ! function_exists( 'YoastSEO' ) ) {
+        clean_post_cache( $post_id );
+        return;
+    }
+    try {
+        $repository = YoastSEO()->classes->get( 'Yoast\WP\SEO\Repositories\Indexable_Repository' );
+        $builder    = YoastSEO()->classes->get( 'Yoast\WP\SEO\Builders\Indexable_Builder' );
+        $indexable  = $repository->find_by_id_and_type( $post_id, 'post', false );
+        $builder->build_for_id_and_type( $post_id, 'post', $indexable );
+    } catch ( \Throwable $e ) {
+        clean_post_cache( $post_id );
     }
 }
 
