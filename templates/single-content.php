@@ -50,10 +50,17 @@ $sajat_es_leszarmazottak = array_merge( array( $post_id ), $leszarmazottak );
     if ( $galeria_idk ) : ?>
         <div class="tpu-galeria">
             <?php foreach ( $galeria_idk as $kep_id ) :
-                if ( ! wp_attachment_is_image( $kep_id ) ) continue; ?>
-                <a href="<?php echo esc_url( wp_get_attachment_url( $kep_id ) ); ?>" class="tpu-galeria-elem" target="_blank" rel="noopener">
-                    <?php echo wp_get_attachment_image( $kep_id, 'medium_large', false, array( 'loading' => 'lazy', 'alt' => get_the_title( $post_id ) ) ); ?>
-                </a>
+                if ( ! wp_attachment_is_image( $kep_id ) ) continue;
+                $felirat = wp_get_attachment_caption( $kep_id );
+                $alt     = $felirat ? $felirat : get_the_title( $post_id ); ?>
+                <figure class="tpu-galeria-cella">
+                    <a href="<?php echo esc_url( wp_get_attachment_url( $kep_id ) ); ?>" class="tpu-galeria-elem" data-caption="<?php echo esc_attr( $felirat ); ?>">
+                        <?php echo wp_get_attachment_image( $kep_id, 'medium_large', false, array( 'loading' => 'lazy', 'alt' => $alt ) ); ?>
+                    </a>
+                    <?php if ( $felirat ) : ?>
+                        <figcaption class="tpu-galeria-felirat"><?php echo esc_html( $felirat ); ?></figcaption>
+                    <?php endif; ?>
+                </figure>
             <?php endforeach; ?>
         </div>
     <?php endif; ?>

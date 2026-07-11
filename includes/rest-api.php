@@ -88,6 +88,16 @@ add_action( 'rest_api_init', function() {
         'permission_callback' => 'tpu_api_auth',
     ) );
 
+    // Felirat mentése egy galéria-képhez (POST ugyanarra az útvonalra).
+    register_rest_route( 'tpu/v1', '/uticel/(?P<id>\d+)/galeria/(?P<kep_id>\d+)', array(
+        'methods'             => WP_REST_Server::CREATABLE,
+        'callback'            => 'tpu_api_galeria_caption',
+        'permission_callback' => 'tpu_api_auth',
+        'args'                => array(
+            'caption' => array( 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ),
+        ),
+    ) );
+
     register_rest_route( 'tpu/v1', '/meta', array(
         'methods'             => WP_REST_Server::READABLE,
         'callback'            => 'tpu_api_meta',
@@ -149,6 +159,7 @@ function tpu_api_format( $post_id ) {
         'thumbnail_url' => $thumb_url ?: '',
         'galeria_ids'   => $galeria_ids,
         'galeria_urls'  => tpu_api_galeria_urls( $galeria_ids ),
+        'galeria'       => tpu_api_galeria( $galeria_ids ),
         'seo_title'     => get_post_meta( $post_id, '_yoast_wpseo_title', true ),
         'seo_metadesc'  => get_post_meta( $post_id, '_yoast_wpseo_metadesc', true ),
         'permalink'     => get_permalink( $post_id ) ?: '',
@@ -350,6 +361,20 @@ function tpu_api_galeria_urls( $ids ) {
     }, $ids ) ) );
 }
 
+// Strukturált galéria: minden kép id + rács-URL + teljes URL + felirat.
+function tpu_api_galeria( $ids ) {
+    return array_values( array_filter( array_map( function( $id ) {
+        $url = wp_get_attachment_image_url( $id, 'medium_large' );
+        if ( ! $url ) return null;
+        return array(
+            'id'       => (int) $id,
+            'url'      => $url,
+            'full_url' => wp_get_attachment_url( $id ) ?: $url,
+            'caption'  => wp_get_attachment_caption( $id ) ?: '',
+        );
+    }, $ids ) ) );
+}
+
 // ── POST /tpu/v1/uticel/{id}/kep – Kiemelt kép sideload URL-ből ───────────────
 function tpu_api_sideload_image( WP_REST_Request $req ) {
     $post_id = (int) $req->get_param( 'id' );
@@ -398,6 +423,7 @@ function tpu_api_galeria_add( WP_REST_Request $req ) {
     return rest_ensure_response( array(
         'galeria_ids'  => $ids,
         'galeria_urls' => tpu_api_galeria_urls( $ids ),
+        'galeria'      => tpu_api_galeria( $ids ),
     ) );
 }
 
@@ -417,6 +443,32 @@ function tpu_api_galeria_remove( WP_REST_Request $req ) {
     return rest_ensure_response( array(
         'galeria_ids'  => $ids,
         'galeria_urls' => tpu_api_galeria_urls( $ids ),
+        'galeria'      => tpu_api_galeria( $ids ),
+    ) );
+}
+
+// ── POST /tpu/v1/uticel/{id}/galeria/{kep_id} – Galéria-kép feliratának mentése ─
+// A felirat a WP-natív attachment-feliratba (post_excerpt) kerül.
+function tpu_api_galeria_caption( WP_REST_Request $req ) {
+    $post_id = (int) $req->get_param( 'id' );
+    $kep_id  = (int) $req->get_param( 'kep_id' );
+    $caption = (string) $req->get_param( 'caption' );
+
+    $post = get_post( $post_id );
+    if ( ! $post || $post->post_type !== 'uticel' ) {
+        return new WP_Error( 'not_found', 'Úticél nem található', array( 'status' => 404 ) );
+    }
+    if ( ! in_array( $kep_id, tpu_api_galeria_ids( $post_id ), true ) ) {
+        return new WP_Error( 'not_in_galeria', 'A kép nem tartozik ehhez az úticélhoz', array( 'status' => 404 ) );
+    }
+
+    wp_update_post( array( 'ID' => $kep_id, 'post_excerpt' => $caption ) );
+
+    $ids = tpu_api_galeria_ids( $post_id );
+    return rest_ensure_response( array(
+        'galeria_ids'  => $ids,
+        'galeria_urls' => tpu_api_galeria_urls( $ids ),
+        'galeria'      => tpu_api_galeria( $ids ),
     ) );
 }
 

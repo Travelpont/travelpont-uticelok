@@ -169,12 +169,17 @@
     margin: 0 0 1.75rem;
 }
 
+.tpu-galeria-cella {
+    margin: 0;
+}
+
 .tpu-galeria-elem {
     display: block;
     aspect-ratio: 4 / 3;
     overflow: hidden;
     border-radius: 10px;
     background: #eef1f3;
+    cursor: zoom-in;
 }
 
 .tpu-galeria-elem img {
@@ -187,6 +192,100 @@
 
 .tpu-galeria-elem:hover img {
     transform: scale(1.05);
+}
+
+.tpu-galeria-felirat {
+    margin: .4rem 0 0;
+    font-size: .82rem;
+    line-height: 1.3;
+    color: var(--tpu-text-light);
+    text-align: center;
+}
+
+/* ── Lightbox (galéria-kép teljes képernyős megnyitása) ──────────────────── */
+.tpu-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 18, 22, .92);
+    padding: 3.5rem 1rem;
+}
+
+.tpu-lightbox.tpu-lightbox--open {
+    display: flex;
+}
+
+.tpu-lightbox-tartalom {
+    margin: 0;
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .75rem;
+}
+
+.tpu-lightbox-kep {
+    max-width: 100%;
+    max-height: 82vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, .5);
+}
+
+.tpu-lightbox-felirat {
+    color: #f2f4f7;
+    font-size: 1rem;
+    text-align: center;
+    max-width: 40rem;
+}
+
+.tpu-lightbox-close,
+.tpu-lightbox-nav {
+    position: absolute;
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s ease;
+    line-height: 1;
+}
+
+.tpu-lightbox-close:hover,
+.tpu-lightbox-nav:hover {
+    background: rgba(255, 255, 255, .28);
+}
+
+.tpu-lightbox-close {
+    top: 1rem;
+    right: 1rem;
+    width: 44px;
+    height: 44px;
+    font-size: 1.8rem;
+}
+
+.tpu-lightbox-nav {
+    top: 50%;
+    transform: translateY(-50%);
+    width: 52px;
+    height: 52px;
+    font-size: 2.2rem;
+}
+
+.tpu-lightbox-prev { left: 1rem; }
+.tpu-lightbox-next { right: 1rem; }
+
+@media (max-width: 600px) {
+    .tpu-lightbox-nav { width: 42px; height: 42px; font-size: 1.8rem; }
+    .tpu-lightbox-prev { left: .35rem; }
+    .tpu-lightbox-next { right: .35rem; }
 }
 
 .tpu-egyszeru-lista {
