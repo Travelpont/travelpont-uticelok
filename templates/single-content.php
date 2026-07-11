@@ -44,6 +44,21 @@ $sajat_es_leszarmazottak = array_merge( array( $post_id ), $leszarmazottak );
     <?php endif; ?>
 
     <?php
+    // ── Galéria (a Portálból feltöltött további fotók, tpu_galeria_ids meta) ──
+    $galeria_idk = get_post_meta( $post_id, 'tpu_galeria_ids', true );
+    $galeria_idk = is_array( $galeria_idk ) ? array_map( 'intval', $galeria_idk ) : array();
+    if ( $galeria_idk ) : ?>
+        <div class="tpu-galeria">
+            <?php foreach ( $galeria_idk as $kep_id ) :
+                if ( ! wp_attachment_is_image( $kep_id ) ) continue; ?>
+                <a href="<?php echo esc_url( wp_get_attachment_url( $kep_id ) ); ?>" class="tpu-galeria-elem" target="_blank" rel="noopener">
+                    <?php echo wp_get_attachment_image( $kep_id, 'medium_large', false, array( 'loading' => 'lazy', 'alt' => get_the_title( $post_id ) ) ); ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <?php
     // ── Gyerek úticélok (pl. egy ország oldalán a tájegységei/városai) ────────
     $gyerekek_query = new WP_Query( array(
         'post_type'      => 'uticel',

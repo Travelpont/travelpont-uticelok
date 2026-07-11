@@ -161,6 +161,34 @@
     margin: 2rem 0 1rem;
 }
 
+/* ── Galéria (további fotók az úticélhoz) ────────────────────────────────── */
+.tpu-galeria {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: .75rem;
+    margin: 0 0 1.75rem;
+}
+
+.tpu-galeria-elem {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #eef1f3;
+}
+
+.tpu-galeria-elem img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .3s ease;
+}
+
+.tpu-galeria-elem:hover img {
+    transform: scale(1.05);
+}
+
 .tpu-egyszeru-lista {
     margin: 0 0 1rem;
     padding-left: 1.2rem;
