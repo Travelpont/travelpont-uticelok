@@ -246,34 +246,33 @@
 .tpu-lightbox-close,
 .tpu-lightbox-nav {
     position: absolute;
-    background: rgba(255, 255, 255, .12);
-    color: #fff;
+    background: none;
     border: none;
+    padding: 0;
     cursor: pointer;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background .2s ease;
-    line-height: 1;
-}
-
-.tpu-lightbox-close:hover,
-.tpu-lightbox-nav:hover {
-    background: rgba(255, 255, 255, .28);
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 /* Az ikonok cserélhető SVG-fájlok (assets/icons/), CSS mask-kel megjelenítve:
-   a fehér szín megmarad, és a fájl cseréjével az ikon is lecserélhető. */
+   maga az ikon látszik (nincs gomb-háttér), finom árnyékkal a világos
+   képrészeken is; a fájl cseréjével az ikon is lecserélhető. */
 .tpu-lightbox-close::before,
 .tpu-lightbox-nav::before {
     content: "";
     display: block;
-    width: 64%;
-    height: 64%;
+    width: 100%;
+    height: 100%;
     background-color: #F2CB4E;
     -webkit-mask: center / contain no-repeat;
     mask: center / contain no-repeat;
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, .55));
+    transition: transform .15s ease;
+}
+
+.tpu-lightbox-close:hover::before,
+.tpu-lightbox-nav:hover::before {
+    transform: scale(1.12);
 }
 
 .tpu-lightbox-close::before { -webkit-mask-image: url(../icons/close.svg); mask-image: url(../icons/close.svg); }
@@ -281,26 +280,27 @@
 .tpu-lightbox-next::before  { -webkit-mask-image: url(../icons/next.svg);  mask-image: url(../icons/next.svg); }
 
 .tpu-lightbox-close {
-    top: 1rem;
-    right: 1rem;
-    width: 44px;
-    height: 44px;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 48px;
+    height: 48px;
 }
 
 .tpu-lightbox-nav {
     top: 50%;
     transform: translateY(-50%);
-    width: 52px;
-    height: 52px;
+    width: 64px;
+    height: 64px;
 }
 
 .tpu-lightbox-prev { left: 1rem; }
 .tpu-lightbox-next { right: 1rem; }
 
 @media (max-width: 600px) {
-    .tpu-lightbox-nav { width: 42px; height: 42px; }
-    .tpu-lightbox-prev { left: .35rem; }
-    .tpu-lightbox-next { right: .35rem; }
+    .tpu-lightbox-close { width: 34px; height: 34px; top: .6rem; right: .6rem; }
+    .tpu-lightbox-nav { width: 38px; height: 38px; }
+    .tpu-lightbox-prev { left: .25rem; }
+    .tpu-lightbox-next { right: .25rem; }
 }
 
 .tpu-egyszeru-lista {

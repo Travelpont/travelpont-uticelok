@@ -3,7 +3,7 @@
  * Plugin Name: Travelpont Úticélok
  * Plugin URI:  https://travelpont.hu
  * Description: Hierarchikus Úticél oldalak (ország → tájegység → város) – ACF-mentes, önálló plugin, a Travelpont Ajánlatok plugin mintájára.
- * Version:     1.6.3
+ * Version:     1.6.4
  * Author:      travelpont.hu
  * Text Domain: travelpont-uticelok
  */
