@@ -12,6 +12,27 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+/**
+ * REST-elérhetőség: a mező írható/olvasható a wp/v2/posts végponton
+ * (a Portal AI Műhelye így tudja piszkozat-mentéskor beállítani a kapcsolatot).
+ * A meta értéke stringként tárolt post-ID (ld. lenti mentés), ezért a REST-ben
+ * is string típusú.
+ */
+add_action( 'init', function() {
+    register_post_meta( 'post', 'tpu_kapcsolt_uticel', array(
+        'type'              => 'string',
+        'single'            => true,
+        'show_in_rest'      => true,
+        'sanitize_callback' => function( $value ) {
+            $raw = absint( $value );
+            return ( $raw && get_post( $raw ) ) ? (string) $raw : '';
+        },
+        'auth_callback'     => function() {
+            return current_user_can( 'edit_posts' );
+        },
+    ) );
+} );
+
 add_action( 'add_meta_boxes', function() {
     add_meta_box(
         'tpu_box_kapcsolt_uticel',
