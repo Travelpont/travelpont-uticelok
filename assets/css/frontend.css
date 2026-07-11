@@ -269,8 +269,8 @@
 .tpu-lightbox-nav::before {
     content: "";
     display: block;
-    width: 46%;
-    height: 46%;
+    width: 64%;
+    height: 64%;
     background-color: #F2CB4E;
     -webkit-mask: center / contain no-repeat;
     mask: center / contain no-repeat;
