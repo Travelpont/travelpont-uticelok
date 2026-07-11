@@ -3,23 +3,39 @@
  * Travelpont Úticélok – Úticél-doboz az aloldalon
  * (a leírás elé fűzve jelenik meg, lásd includes/single-display.php)
  *
- * Tartalma:
- *  - morzsamenü (ország > tájegység > város)
- *  - rövid leíró szöveg
- *  - gyerek úticélok rácsa (ha vannak – pl. egy ország oldalán a városai)
- *  - a hozzá (és a leszármazottaihoz) kapcsolt Ajánlatok
- *  - a hozzá kapcsolt Blog cikkek
+ * Az elrendezés a "Szint" (tpu_szint) mezőtől függ:
+ *  - ORSZÁG: ország-adatok doboz + "Régiók" rács + ország összes ajánlata
+ *  - RÉGIÓ:  legjobb időszak + "Városok" rács + régió ajánlatai
+ *  - VÁROS:  gyakorlati infó (repülőtér, repülési idő) + ajánlatok elöl
+ *  - egyéb / nincs kitöltve: az általános, visszafelé kompatibilis elrendezés
+ *
+ * Minden szinten közös: morzsamenü, rövid leírás, térkép, galéria, kapcsolódó
+ * blog cikkek. Az ajánlatokat a bejegyzéshez VAGY bármely leszármazottjához
+ * kötve gyűjti (rekurzív) – így egy ország oldalán az összes alá tartozó ajánlat.
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-$post_id       = get_the_ID();
-$leiras        = tpu_mezo( $post_id, 'tpu_leiras' );
-$osok          = array_reverse( get_post_ancestors( $post_id ) );
+$post_id        = get_the_ID();
+$szint          = tpu_szint_erteke( $post_id );
+$leiras         = tpu_mezo( $post_id, 'tpu_leiras' );
+$terkep         = tpu_mezo( $post_id, 'tpu_terkep' );
+$osok           = array_reverse( get_post_ancestors( $post_id ) );
 $leszarmazottak = tpu_get_leszarmazott_idk( $post_id );
 $sajat_es_leszarmazottak = array_merge( array( $post_id ), $leszarmazottak );
+
+// A gyerek-rács címe a szinttől függ.
+$gyerek_cim = 'Ebben az úticélban';
+if ( $szint === 'orszag' ) {
+    $gyerek_cim = 'Régiók, tájegységek';
+} elseif ( $szint === 'regio' ) {
+    $gyerek_cim = 'Városok, települések';
+}
+
+// Város szinten az ajánlatok a gyerek-rács ELÉ kerülnek (hangsúlyos), egyébként utána.
+$sorrend = ( $szint === 'varos' ) ? array( 'ajanlatok', 'gyerekek' ) : array( 'gyerekek', 'ajanlatok' );
 ?>
-<div class="tpu-single-doboz">
+<div class="tpu-single-doboz tpu-szint-<?php echo esc_attr( $szint ?: 'nincs' ); ?>">
 
     <?php
     // A gyökér "Úticélok" link csak akkor jelenik meg, ha van hozzá beállított
@@ -41,6 +57,39 @@ $sajat_es_leszarmazottak = array_merge( array( $post_id ), $leszarmazottak );
 
     <?php if ( $leiras ) : ?>
         <p class="tpu-single-leiras"><?php echo esc_html( $leiras ); ?></p>
+    <?php endif; ?>
+
+    <?php
+    // ── Szint-függő info-doboz ────────────────────────────────────────────────
+    if ( $szint === 'orszag' ) {
+        $sorok  = tpu_info_sor( $post_id, 'tpu_penznem',  'Pénznem' );
+        $sorok .= tpu_info_sor( $post_id, 'tpu_nyelv',    'Nyelv' );
+        $sorok .= tpu_info_sor( $post_id, 'tpu_idozona',  'Időzóna' );
+        $sorok .= tpu_info_sor( $post_id, 'tpu_beutazas', 'Beutazás' );
+        if ( $sorok ) {
+            echo '<div class="tpu-info-doboz"><h2 class="tpu-info-cim">Jó tudni</h2>' . $sorok . '</div>';
+        }
+    } elseif ( $szint === 'regio' ) {
+        $sorok = tpu_info_sor( $post_id, 'tpu_legjobb_idoszak', 'Legjobb időszak' );
+        if ( $sorok ) {
+            echo '<div class="tpu-info-doboz">' . $sorok . '</div>';
+        }
+    } elseif ( $szint === 'varos' ) {
+        $sorok  = tpu_info_sor( $post_id, 'tpu_legjobb_idoszak', 'Legjobb időszak' );
+        $sorok .= tpu_info_sor( $post_id, 'tpu_repuloter',       'Legközelebbi repülőtér' );
+        $sorok .= tpu_info_sor( $post_id, 'tpu_repules_ido',     'Repülési idő Budapestről' );
+        if ( $sorok ) {
+            echo '<div class="tpu-info-doboz"><h2 class="tpu-info-cim">Gyakorlati infó</h2>' . $sorok . '</div>';
+        }
+    }
+    ?>
+
+    <?php
+    // ── Térkép (minden szinten, ha van beágyazási URL) ────────────────────────
+    if ( $terkep ) : ?>
+        <div class="tpu-terkep">
+            <iframe src="<?php echo esc_url( $terkep ); ?>" width="100%" height="360" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="<?php echo esc_attr( get_the_title() ); ?> térkép"></iframe>
+        </div>
     <?php endif; ?>
 
     <?php
@@ -66,57 +115,60 @@ $sajat_es_leszarmazottak = array_merge( array( $post_id ), $leszarmazottak );
     <?php endif; ?>
 
     <?php
-    // ── Gyerek úticélok (pl. egy ország oldalán a tájegységei/városai) ────────
-    $gyerekek_query = new WP_Query( array(
-        'post_type'      => 'uticel',
-        'post_status'    => 'publish',
-        'post_parent'    => $post_id,
-        'posts_per_page' => -1,
-        'orderby'        => 'menu_order title',
-        'order'          => 'ASC',
-    ) );
-    if ( $gyerekek_query->have_posts() ) :
-        $tpu_query = $gyerekek_query;
-        $tpu_atts  = array( 'oszlopok' => 3 );
-        ?>
-        <h2 class="tpu-single-alcim">Ebben az úticélban</h2>
-        <?php include TPU_PATH . 'templates/lista-template.php'; ?>
-    <?php endif; wp_reset_postdata(); ?>
+    // ── Gyerek úticélok és Ajánlatok szint-függő sorrendben ───────────────────
+    foreach ( $sorrend as $blokk ) :
 
-    <?php
-    // ── Kapcsolódó Ajánlatok (a Travelpont Ajánlatok plugin mezője alapján) ───
-    if ( post_type_exists( 'ajanlat' ) ) :
-        $ajanlatok_query = new WP_Query( array(
-            'post_type'      => 'ajanlat',
-            'post_status'    => 'publish',
-            'posts_per_page' => -1,
-            'meta_query'     => array(
-                array(
-                    'key'     => 'tpa_uticel',
-                    'value'   => $sajat_es_leszarmazottak,
-                    'compare' => 'IN',
+        if ( $blokk === 'gyerekek' ) :
+            $gyerekek_query = new WP_Query( array(
+                'post_type'      => 'uticel',
+                'post_status'    => 'publish',
+                'post_parent'    => $post_id,
+                'posts_per_page' => -1,
+                'orderby'        => 'menu_order title',
+                'order'          => 'ASC',
+            ) );
+            if ( $gyerekek_query->have_posts() ) :
+                $tpu_query = $gyerekek_query;
+                $tpu_atts  = array( 'oszlopok' => 3 );
+                ?>
+                <h2 class="tpu-single-alcim"><?php echo esc_html( $gyerek_cim ); ?></h2>
+                <?php include TPU_PATH . 'templates/lista-template.php'; ?>
+            <?php endif; wp_reset_postdata();
+
+        elseif ( $blokk === 'ajanlatok' && post_type_exists( 'ajanlat' ) ) :
+            $ajanlatok_query = new WP_Query( array(
+                'post_type'      => 'ajanlat',
+                'post_status'    => 'publish',
+                'posts_per_page' => -1,
+                'meta_query'     => array(
+                    array(
+                        'key'     => 'tpa_uticel',
+                        'value'   => $sajat_es_leszarmazottak,
+                        'compare' => 'IN',
+                    ),
                 ),
-            ),
-        ) );
-        if ( $ajanlatok_query->have_posts() ) :
-            ?>
-            <h2 class="tpu-single-alcim">Ajánlataink ehhez az úticélhoz</h2>
-            <?php if ( function_exists( 'tpa_mezo' ) && defined( 'TPA_PATH' ) ) : ?>
-                <div class="tpa-grid">
-                    <?php while ( $ajanlatok_query->have_posts() ) : $ajanlatok_query->the_post(); ?>
-                        <?php include TPA_PATH . 'templates/card-template.php'; ?>
-                    <?php endwhile; ?>
-                </div>
-            <?php else : ?>
-                <ul class="tpu-egyszeru-lista">
-                    <?php while ( $ajanlatok_query->have_posts() ) : $ajanlatok_query->the_post(); ?>
-                        <li><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></li>
-                    <?php endwhile; ?>
-                </ul>
-            <?php endif; ?>
-            <?php wp_reset_postdata(); ?>
-        <?php endif;
-    endif;
+            ) );
+            if ( $ajanlatok_query->have_posts() ) :
+                ?>
+                <h2 class="tpu-single-alcim">Ajánlataink ehhez az úticélhoz</h2>
+                <?php if ( function_exists( 'tpa_mezo' ) && defined( 'TPA_PATH' ) ) : ?>
+                    <div class="tpa-grid">
+                        <?php while ( $ajanlatok_query->have_posts() ) : $ajanlatok_query->the_post(); ?>
+                            <?php include TPA_PATH . 'templates/card-template.php'; ?>
+                        <?php endwhile; ?>
+                    </div>
+                <?php else : ?>
+                    <ul class="tpu-egyszeru-lista">
+                        <?php while ( $ajanlatok_query->have_posts() ) : $ajanlatok_query->the_post(); ?>
+                            <li><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></li>
+                        <?php endwhile; ?>
+                    </ul>
+                <?php endif; ?>
+                <?php wp_reset_postdata();
+            endif;
+        endif;
+
+    endforeach;
     ?>
 
     <?php

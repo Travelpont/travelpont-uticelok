@@ -161,6 +161,78 @@
     margin: 2rem 0 1rem;
 }
 
+/* ── Szint-badge a kártyaképen ───────────────────────────────────────────── */
+.tpu-card-badge {
+    position: absolute;
+    top: .6rem;
+    left: .6rem;
+    background: rgba(14, 116, 144, .92);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .01em;
+    padding: .22rem .6rem;
+    border-radius: 999px;
+    backdrop-filter: blur(2px);
+}
+
+/* ── Szint-függő info-doboz (Jó tudni / Gyakorlati infó) ─────────────────── */
+.tpu-info-doboz {
+    background: #f0f9fb;
+    border: 1px solid var(--tpu-card-border);
+    border-radius: var(--tpu-radius);
+    padding: 1.1rem 1.3rem;
+    margin: 0 0 1.75rem;
+}
+
+.tpu-info-cim {
+    font-size: 1.05rem;
+    margin: 0 0 .75rem;
+    color: var(--tpu-primary-dark);
+}
+
+.tpu-info-sor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem .75rem;
+    padding: .4rem 0;
+    border-top: 1px solid rgba(0, 0, 0, .06);
+}
+
+.tpu-info-sor:first-of-type {
+    border-top: none;
+}
+
+.tpu-info-cimke {
+    font-weight: 600;
+    color: var(--tpu-text-light);
+    min-width: 11rem;
+}
+
+.tpu-info-ertek {
+    color: var(--tpu-text);
+}
+
+/* ── Térkép beágyazás ────────────────────────────────────────────────────── */
+.tpu-terkep {
+    margin: 0 0 1.75rem;
+    border-radius: var(--tpu-radius);
+    overflow: hidden;
+    box-shadow: var(--tpu-shadow);
+    line-height: 0;
+}
+
+.tpu-terkep iframe {
+    display: block;
+    width: 100%;
+}
+
+@media (max-width: 480px) {
+    .tpu-info-cimke {
+        min-width: 0;
+    }
+}
+
 /* ── Galéria (további fotók az úticélhoz) ────────────────────────────────── */
 .tpu-galeria {
     display: grid;

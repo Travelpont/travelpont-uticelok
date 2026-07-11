@@ -1,6 +1,6 @@
 # Travelpont Úticélok plugin – dokumentáció
 
-> Verzió: 1.0.0 · A Travelpont Ajánlatok plugin architektúráját követi
+> Verzió: 1.8.0 · A Travelpont Ajánlatok plugin architektúráját követi
 > (`D:\travelpont.hu\_Saját_pluginek\travelpont-ajanlatok\`)
 > SZABÁLY: minden módosításkor verziót emelünk a fő fájl fejlécében
 > (cache-buster + követhetőség).
@@ -11,20 +11,37 @@
   űrlapon (nem kell kódolni): ország → tájegység (opcionális) → város.
   A szülő kiválasztása a WordPress natív "Oldal-attribútumok" dobozával
   történik (ugyanaz, mint az Oldalaknál).
+- **Szint (`tpu_szint`)**: minden úticél megjelöli, mi ő a hierarchiában –
+  **Ország / Régió / Város / Egyéb**. Ettől függ az oldal felépítése ÉS az,
+  mely mezők látszanak a szerkesztőben (a nem releváns mezők automatikusan
+  elrejtődnek – `assets/js/admin-szint.js`). A szint **nem kötelező láncot**:
+  szint kihagyható (kis ország régió nélkül, szigetcsoport önálló „régióként").
 - **Mezők**: cím (post title), rövid leíró szöveg (`tpu_leiras`), kiemelt kép
-  (natív featured image – ezt kell feltölteni, ha elkészülnek a képek).
+  (natív featured image). Szint-függő extra mezők:
+  - *Ország*: pénznem, nyelv, időzóna, be-/kiutazási tudnivaló
+  - *Régió, Város*: legjobb utazási időszak
+  - *Város*: legközelebbi repülőtér, repülési idő Budapestről (repjegy-affiliate)
+  - *Minden szint*: Google Maps beágyazási URL (`tpu_terkep`) – csak a
+    `https://www.google.com/maps/embed…` kezdetű URL-t fogadja el (biztonság).
 - **Automatikus, hierarchikus URL-ek**: `/uticelok/horvatorszag/`,
   `/uticelok/horvatorszag/isztria/`, `/uticelok/horvatorszag/isztria/pula/` –
   a szülő-gyerek kapcsolat alapján, kódolás nélkül. (A WordPress ezt csak a
   natív Oldalaknál csinálja automatikusan, egyedi CPT-nél a plugin építi fel
   – lásd `includes/cpt.php`.)
-- **Úticél aloldal** → minden úticél-oldal automatikusan megjeleníti:
+- **Úticél aloldal (szint-függő elrendezés)** → minden úticél-oldal
+  automatikusan megjeleníti (a `tpu_szint`-től függő sorrendben/hangsúllyal):
   - morzsamenüt (ország > tájegység > város),
   - a leíró szöveget,
-  - a gyerek úticélokat kártyarácsban (pl. egy ország oldalán a városai),
+  - **szint-függő info-dobozt**: Ország → „Jó tudni" (pénznem/nyelv/…),
+    Város → „Gyakorlati infó" (repülőtér, repülési idő),
+  - térképet (ha van beágyazási URL),
+  - a gyerek úticélokat kártyarácsban, szint-függő címmel (Ország → „Régiók",
+    Régió → „Városok"),
   - a hozzá (VAGY BÁRMELY leszármazottjához) kapcsolt **Ajánlatokat** – a
-    Travelpont Ajánlatok plugin `tpa_uticel` mezője alapján,
+    Travelpont Ajánlatok plugin `tpa_uticel` mezője alapján (Város szinten
+    hangsúlyosan, a gyerek-rács elé kerül),
   - a hozzá kapcsolt **Blog cikkeket** – a `tpu_kapcsolt_uticel` mező alapján.
+  - *Ha nincs szint kitöltve*: az általános elrendezés (visszafelé kompatibilis).
 - **`[travelpont_uticelok]` shortcode** → tetszőleges szülő gyerekeinek
   kártyarácsa bárhová (pl. egy "Úticélok" áttekintő oldalra).
 
@@ -77,9 +94,12 @@ travelpont-uticelok/
 │   ├── lista-template.php     ← kártyarács
 │   ├── card-template.php      ← egy kártya
 │   └── single-content.php     ← aloldali doboz (morzsamenü, gyerekek, kapcsolódó tartalom)
-└── assets/css/
-    ├── frontend.css           ← kártya + aloldal (branding CSS-változókban!)
-    └── admin.css               ← admin űrlap
+├── assets/css/
+│   ├── frontend.css           ← kártya + aloldal (branding CSS-változókban!)
+│   └── admin.css              ← admin űrlap + szint-választó kiemelés
+└── assets/js/
+    ├── galeria-lightbox.js    ← galéria lightbox
+    └── admin-szint.js         ← szint szerint mutatja/rejti a mezőket a szerkesztőben
 ```
 
 ## Miért nincs automatikus nested URL a WordPress-ben alapból?
@@ -137,7 +157,9 @@ A permalinkeket (nested URL, pl. `/uticelok/orszag/varos/`) a meglévő
 1. A `travelpont-uticelok` mappát felmásolni ide: `wp-content/plugins/`
 2. WP admin → Bővítmények → "Travelpont Úticélok" → Bekapcsolás
    (a permalink szabályok automatikusan frissülnek).
-3. Úticélok → Új úticél → először az országokat vidd fel (szülő nélkül),
-   utána a tájegységeket/városokat, "Oldal-attribútumok" → Szülő beállítva.
+3. Úticélok → Új úticél → először az országokat vidd fel (szülő nélkül,
+   **Szint = Ország**), utána a régiókat (**Szint = Régió**, Szülő = az ország)
+   és a városokat (**Szint = Város**, Szülő = a régió). A Szülő az
+   "Oldal-attribútumok" dobozban, a Szint az „🌍 Alapadatok" dobozban.
 4. Ajánlat vagy Blog cikk szerkesztésekor válaszd ki a hozzá tartozó Úticélt
    – automatikusan megjelenik az Úticél oldalán.

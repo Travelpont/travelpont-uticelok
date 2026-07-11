@@ -6,8 +6,9 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-$post_id = get_the_ID();
-$leiras  = tpu_mezo( $post_id, 'tpu_leiras' );
+$post_id     = get_the_ID();
+$leiras      = tpu_mezo( $post_id, 'tpu_leiras' );
+$szint_cimke = tpu_szint_cimke( tpu_szint_erteke( $post_id ) );
 ?>
 <article class="tpu-card">
     <a class="tpu-card-kep-link" href="<?php the_permalink(); ?>">
@@ -16,6 +17,9 @@ $leiras  = tpu_mezo( $post_id, 'tpu_leiras' );
                 <?php the_post_thumbnail( 'medium_large' ); ?>
             <?php else : ?>
                 <div class="tpu-card-kep-ures">🌍</div>
+            <?php endif; ?>
+            <?php if ( $szint_cimke ) : ?>
+                <span class="tpu-card-badge"><?php echo esc_html( $szint_cimke ); ?></span>
             <?php endif; ?>
         </div>
     </a>

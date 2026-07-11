@@ -52,7 +52,14 @@ function tpu_render_field( $post_id, $key, $field ) {
         $value = $field['default'];
     }
 
-    echo '<div class="tpu-field tpu-field-' . esc_attr( $type ) . '">';
+    // Szint-függő mező: data-szint attribútum, amit az admin-szint.js használ a
+    // megjelenítés szűkítésére (üres = minden szinten látszik).
+    $szint_attr = '';
+    if ( ! empty( $field['szint'] ) && is_array( $field['szint'] ) ) {
+        $szint_attr = ' data-szint="' . esc_attr( implode( ' ', $field['szint'] ) ) . '"';
+    }
+
+    echo '<div class="tpu-field tpu-field-' . esc_attr( $type ) . '"' . $szint_attr . '>';
     echo '<label for="' . esc_attr( $key ) . '"><strong>' . esc_html( $field['label'] ) . '</strong></label>';
 
     switch ( $type ) {
