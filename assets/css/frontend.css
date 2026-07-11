@@ -250,6 +250,7 @@
     border: none;
     padding: 0;
     cursor: pointer;
+    outline: none;
     -webkit-appearance: none;
     appearance: none;
 }
@@ -271,7 +272,9 @@
 }
 
 .tpu-lightbox-close:hover::before,
-.tpu-lightbox-nav:hover::before {
+.tpu-lightbox-nav:hover::before,
+.tpu-lightbox-close:focus-visible::before,
+.tpu-lightbox-nav:focus-visible::before {
     transform: scale(1.12);
 }
 
