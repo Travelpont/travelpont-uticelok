@@ -119,21 +119,49 @@ $sorrend = ( $szint === 'varos' ) ? array( 'ajanlatok', 'gyerekek' ) : array( 'g
     foreach ( $sorrend as $blokk ) :
 
         if ( $blokk === 'gyerekek' ) :
-            $gyerekek_query = new WP_Query( array(
-                'post_type'      => 'uticel',
-                'post_status'    => 'publish',
-                'post_parent'    => $post_id,
-                'posts_per_page' => -1,
-                'orderby'        => 'menu_order title',
-                'order'          => 'ASC',
+            // A gyerekeket a SAJÁT szintjük szerint külön blokkokba csoportosítjuk
+            // (pl. egy ország alatt külön „Régiók" és külön „Városok"), hogy a
+            // különböző szintű aloldalak sose keveredjenek egy közös rácsban.
+            $gyerekek = get_children( array(
+                'post_parent' => $post_id,
+                'post_type'   => 'uticel',
+                'post_status' => 'publish',
+                'orderby'     => 'menu_order title',
+                'order'       => 'ASC',
+                'numberposts' => -1,
             ) );
-            if ( $gyerekek_query->have_posts() ) :
-                $tpu_query = $gyerekek_query;
-                $tpu_atts  = array( 'oszlopok' => 3 );
-                ?>
-                <h2 class="tpu-single-alcim"><?php echo esc_html( $gyerek_cim ); ?></h2>
-                <?php include TPU_PATH . 'templates/lista-template.php'; ?>
-            <?php endif; wp_reset_postdata();
+            if ( $gyerekek ) :
+                $csoportok = array( 'orszag' => array(), 'regio' => array(), 'varos' => array(), 'egyeb' => array() );
+                foreach ( $gyerekek as $gy ) {
+                    $gy_szint = tpu_mezo( $gy->ID, 'tpu_szint' );
+                    if ( ! isset( $csoportok[ $gy_szint ] ) ) $gy_szint = 'egyeb'; // '' vagy ismeretlen
+                    $csoportok[ $gy_szint ][] = $gy->ID;
+                }
+                // Ha egyetlen gyereknek sincs szintje, marad az egy közös blokk a
+                // szülő szintje szerinti címmel (visszafelé kompatibilis a régi adatokkal).
+                $van_tipizalt = $csoportok['orszag'] || $csoportok['regio'] || $csoportok['varos'];
+                $csoport_cimek = array(
+                    'orszag' => 'Országok',
+                    'regio'  => 'Régiók, tájegységek',
+                    'varos'  => 'Városok, települések',
+                    'egyeb'  => $van_tipizalt ? 'További úticélok' : $gyerek_cim,
+                );
+                foreach ( array( 'orszag', 'regio', 'varos', 'egyeb' ) as $cs ) {
+                    if ( empty( $csoportok[ $cs ] ) ) continue;
+                    $tpu_query = new WP_Query( array(
+                        'post_type'      => 'uticel',
+                        'post_status'    => 'publish',
+                        'post__in'       => $csoportok[ $cs ],
+                        'orderby'        => 'menu_order title',
+                        'order'          => 'ASC',
+                        'posts_per_page' => -1,
+                    ) );
+                    $tpu_atts = array( 'oszlopok' => 3 );
+                    echo '<h2 class="tpu-single-alcim">' . esc_html( $csoport_cimek[ $cs ] ) . '</h2>';
+                    include TPU_PATH . 'templates/lista-template.php';
+                    wp_reset_postdata();
+                }
+            endif;
 
         elseif ( $blokk === 'ajanlatok' && post_type_exists( 'ajanlat' ) ) :
             $ajanlatok_query = new WP_Query( array(

@@ -18,13 +18,13 @@ $szint_cimke = tpu_szint_cimke( tpu_szint_erteke( $post_id ) );
             <?php else : ?>
                 <div class="tpu-card-kep-ures">🌍</div>
             <?php endif; ?>
-            <?php if ( $szint_cimke ) : ?>
-                <span class="tpu-card-badge"><?php echo esc_html( $szint_cimke ); ?></span>
-            <?php endif; ?>
         </div>
     </a>
 
     <div class="tpu-card-torzs">
+        <?php if ( $szint_cimke ) : ?>
+            <span class="tpu-card-szint"><?php echo esc_html( $szint_cimke ); ?></span>
+        <?php endif; ?>
         <h3 class="tpu-card-cim">
             <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
         </h3>

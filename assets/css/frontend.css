@@ -161,19 +161,15 @@
     margin: 2rem 0 1rem;
 }
 
-/* ── Szint-badge a kártyaképen ───────────────────────────────────────────── */
-.tpu-card-badge {
-    position: absolute;
-    top: .6rem;
-    left: .6rem;
-    background: rgba(14, 116, 144, .92);
-    color: #fff;
-    font-size: .72rem;
-    font-weight: 600;
-    letter-spacing: .01em;
-    padding: .22rem .6rem;
-    border-radius: 999px;
-    backdrop-filter: blur(2px);
+/* ── Szint-címke a kártya szövegében (a cím fölött, nem a képen) ──────────── */
+.tpu-card-szint {
+    align-self: flex-start;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--tpu-primary);
+    margin-bottom: -.35rem;
 }
 
 /* ── Szint-függő info-doboz (Jó tudni / Gyakorlati infó) ─────────────────── */
