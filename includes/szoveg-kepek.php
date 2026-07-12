@@ -2,39 +2,39 @@
 /**
  * Travelpont Úticélok – Galéria-képek beszövése a leírás szövegébe
  *
- * A galéria (tpu_galeria_ids) képeit automatikusan elhelyezi a bemutató
- * szöveg szakaszai közé, "mix" stílusban: felváltva jobbra/balra úszó
- * képek (a szöveg körbefolyja), minden harmadik pedig teljes szélességű,
- * filmes "levegővétel"-sáv.
+ * A leírás szakaszait (h3-mal tagolt egységeit) a galéria képeivel párba
+ * állítva "zig-zag" sorokká alakítja:
+ *   1. sor: kép BALRA, szöveg jobbra
+ *   2. sor: kép JOBBRA, szöveg balra
+ *   3. sor: TELJES szélességű kép, alatta a szöveg
+ *   ... és a ritmus ismétlődik. Mobilon minden sor egyoszlopos (kép felül).
  *
- * Elhelyezési logika két körben:
- *  1. FELIRAT-PÁROSÍTÁS: a kép felirata (vagy címe/fájlneve) alapján a kép
- *     ahhoz a szakaszhoz kerül, amelyik említi (szó-eleji egyezés, így a
- *     magyar toldalékok nem zavarnak: "Toszkána" → "Toszkánában" is talál).
- *  2. SORREND: ami nem párosítható, a maradék helyeket tölti fel a Portálbeli
- *     feltöltési sorrend szerint.
+ * Kép-hozzárendelés két körben:
+ *  1. FELIRAT-PÁROSÍTÁS: a kép felirata (vagy címe/fájlneve) alapján ahhoz a
+ *     szakaszhoz kerül, amelyik említi (szó-eleji egyezés, magyar toldalék-
+ *     tűréssel: "Toszkána" → "Toszkánában" is talál).
+ *  2. SORREND: ami nem párosítható, a maradék szakaszokat tölti fel a
+ *     Portálbeli feltöltési sorrend szerint.
  * A be nem szőtt képek a galéria-tömbben maradnak (lásd single-content.php).
+ * Minden kép 16:9 keretben jelenik meg — a szerkesztett 16:9-es forrásképeknél
+ * ez NULLA vágást jelent (lásd a képarány-szabályt).
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
- * Egy szövegközi kép <figure> markupja.
+ * Egy szakasz-sor képének <figure> markupja.
  *
- * @param int $kep_id  Attachment ID.
- * @param int $i       Hanyadik beszőtt kép (0-tól) – ebből jön a stílus.
+ * @param int  $kep_id  Attachment ID.
+ * @param bool $teljes  Teljes szélességű sorba kerül-e (nagyobb képméret).
  */
-function tpu_szoveg_kep_figure( $kep_id, $i ) {
-    $stilusok = array( 'tpu-szoveg-kep--jobb', 'tpu-szoveg-kep--bal', 'tpu-szoveg-kep--nagy' );
-    $stilus   = $stilusok[ $i % 3 ];
-    $meret    = ( $stilus === 'tpu-szoveg-kep--nagy' ) ? 'large' : 'medium_large';
-
+function tpu_szakasz_kep_figure( $kep_id, $teljes ) {
     $felirat = wp_get_attachment_caption( $kep_id );
     $alt     = $felirat ? $felirat : get_the_title( $kep_id );
 
-    $html  = '<figure class="tpu-szoveg-kep ' . esc_attr( $stilus ) . '">';
+    $html  = '<figure class="tpu-szakasz-kep">';
     $html .= '<a href="' . esc_url( wp_get_attachment_url( $kep_id ) ) . '" class="tpu-galeria-elem" data-caption="' . esc_attr( $felirat ) . '">';
-    $html .= wp_get_attachment_image( $kep_id, $meret, false, array( 'alt' => $alt ) );
+    $html .= wp_get_attachment_image( $kep_id, $teljes ? 'large' : 'medium_large', false, array( 'alt' => $alt ) );
     $html .= '</a>';
     if ( $felirat ) {
         $html .= '<figcaption>' . esc_html( $felirat ) . '</figcaption>';
@@ -110,7 +110,7 @@ function tpu_szovegben_szerepel( $kulcs, $szoveg ) {
 }
 
 /**
- * A galéria képeinek beszövése a tartalomba.
+ * A galéria képeinek beszövése a tartalomba (zig-zag szakasz-sorok).
  *
  * @param string $content       A bejegyzés tartalma (HTML).
  * @param int    $post_id       Az úticél ID-je.
@@ -125,8 +125,8 @@ function tpu_kepek_beszovese( $content, $post_id, &$hasznalt_idk ) {
     }
 
     // A Portál Quill-szerkesztője a címsor előtti üres sorokat üres <h3></h3>
-    // elemként menti — ezek hézagot okoznak ÉS hamis beszúrási pontot adnának
-    // (a kép a valódi címsor ELÉ kerülne). Eltávolítjuk őket.
+    // elemként menti — ezek hézagot okoznak ÉS hamis szakaszhatárt adnának.
+    // Eltávolítjuk őket (galéria nélküli úticélnál is).
     $content = preg_replace( '#<h([23])>(\s|&\#?\w+;)*</h\1>#u', '', $content );
 
     $galeria_idk = get_post_meta( $post_id, 'tpu_galeria_ids', true );
@@ -137,36 +137,41 @@ function tpu_kepek_beszovese( $content, $post_id, &$hasznalt_idk ) {
         return $content;
     }
 
-    // ── Beszúrási helyek (slotok) összegyűjtése ──────────────────────────────
-    // Slot: hova kerülhet kép + az odatartozó szakasz kisbetűs szövege
-    // (ez utóbbi a felirat-párosításhoz).
+    // ── Szakaszok (slotok) összegyűjtése ─────────────────────────────────────
+    // Slot: egy szöveg-egység, ami képet kaphat + a kisbetűs szövege a
+    // felirat-párosításhoz. 'db'–'db2' a darabok tömbben elfoglalt tartomány.
     $van_h3 = ( stripos( $content, '<h3' ) !== false );
-    $slotok = array(); // elemei: array( 'db' => darab-index, 'tipus' => intro|h3|p, 'szoveg' => ... )
+    $slotok = array();
 
     if ( $van_h3 ) {
         $darabok = preg_split( '/(?=<h3)/i', $content );
         foreach ( $darabok as $d => $darab ) {
             $sima = tpu_slot_szoveg( $darab );
             if ( $sima === '' ) continue; // üres szakasz sosem slot
-            if ( $d === 0 ) {
-                $slotok[] = array( 'db' => 0, 'tipus' => 'intro', 'szoveg' => $sima );
-            } elseif ( stripos( $darab, '</h3>' ) !== false ) {
-                $slotok[] = array( 'db' => $d, 'tipus' => 'h3', 'szoveg' => $sima );
+            if ( $d === 0 || stripos( $darab, '</h3>' ) !== false ) {
+                $slotok[] = array( 'db' => $d, 'db2' => $d, 'szoveg' => $sima );
             }
         }
     } else {
-        // Tagolatlan szöveg: minden 2. bekezdés után; a slot szövege a két bekezdés.
-        $darabok = preg_split( '/(?<=<\/p>)/i', $content );
-        $p_szam  = 0;
-        $gyujto  = '';
+        // Tagolatlan szöveg: bekezdés-párok alkotnak egy-egy szakaszt.
+        $darabok  = preg_split( '/(?<=<\/p>)/i', $content );
+        $par_elso = -1;
         foreach ( $darabok as $d => $darab ) {
             if ( stripos( $darab, '</p>' ) === false ) continue;
-            $p_szam++;
-            $gyujto .= ' ' . tpu_slot_szoveg( $darab );
-            if ( $p_szam % 2 === 0 ) {
-                $slotok[] = array( 'db' => $d, 'tipus' => 'p', 'szoveg' => trim( $gyujto ) );
-                $gyujto = '';
+            if ( $par_elso < 0 ) {
+                $par_elso = $d;
+            } else {
+                $slotok[] = array(
+                    'db'     => $par_elso,
+                    'db2'    => $d,
+                    'szoveg' => tpu_slot_szoveg( $darabok[ $par_elso ] . ' ' . $darab ),
+                );
+                $par_elso = -1;
             }
+        }
+        // Páratlan utolsó bekezdés is lehet szakasz.
+        if ( $par_elso >= 0 ) {
+            $slotok[] = array( 'db' => $par_elso, 'db2' => $par_elso, 'szoveg' => tpu_slot_szoveg( $darabok[ $par_elso ] ) );
         }
     }
 
@@ -174,17 +179,11 @@ function tpu_kepek_beszovese( $content, $post_id, &$hasznalt_idk ) {
         return $content;
     }
 
-    // Sűrűség-plafon: a szakaszok legfeljebb feléhez jut kép, hogy a szöveg
-    // levegős maradjon — a többi kép a galéria-tömbben jelenik meg.
-    $plafon   = (int) ceil( count( $slotok ) / 2 );
-    $kiosztva = 0;
-
     // ── 1. kör: felirat-párosítás (elsőbbséget élvez a sorrendi töltéssel szemben) ──
     $slot_kep     = array_fill( 0, count( $slotok ), 0 ); // slot-index → kép ID (0 = üres)
     $sorrendi_sor = array(); // nem párosított képek, feltöltési sorrendben
 
     foreach ( $galeria_idk as $kep_id ) {
-        if ( $kiosztva >= $plafon ) break;
         $talalt = false;
         foreach ( tpu_kep_kulcsszavak( $kep_id ) as $kulcs ) {
             foreach ( $slotok as $si => $slot ) {
@@ -192,7 +191,6 @@ function tpu_kepek_beszovese( $content, $post_id, &$hasznalt_idk ) {
                 if ( tpu_szovegben_szerepel( $kulcs, $slot['szoveg'] ) ) {
                     $slot_kep[ $si ] = $kep_id;
                     $talalt = true;
-                    $kiosztva++;
                     break 2;
                 }
             }
@@ -202,29 +200,26 @@ function tpu_kepek_beszovese( $content, $post_id, &$hasznalt_idk ) {
         }
     }
 
-    // ── 2. kör: a maradék képek a szabad slotokba, sorrendben, a plafonig ────
+    // ── 2. kör: a maradék képek a szabad szakaszokba, sorrendben ─────────────
     foreach ( $slot_kep as $si => $kep ) {
-        if ( $kiosztva >= $plafon ) break;
         if ( ! $kep && $sorrendi_sor ) {
             $slot_kep[ $si ] = array_shift( $sorrendi_sor );
-            $kiosztva++;
         }
     }
 
-    // ── Beszúrás dokumentum-sorrendben (a stílus-rotáció is eszerint megy) ──
+    // ── Szakasz-sorok összeállítása dokumentum-sorrendben ────────────────────
+    // Ritmus: kép balra → kép jobbra → teljes szélességű, majd elölről.
+    $variansok = array( 'kep-bal', 'kep-jobb', 'teljes' );
     $i = 0;
     foreach ( $slotok as $si => $slot ) {
-        if ( ! $slot_kep[ $si ] ) continue;
-        $figure = tpu_szoveg_kep_figure( $slot_kep[ $si ], $i );
-        $db     = $slot['db'];
+        if ( ! $slot_kep[ $si ] ) continue; // képtelen szakasz változatlan marad
 
-        if ( $slot['tipus'] === 'intro' ) {
-            $darabok[ $db ] = $figure . $darabok[ $db ];
-        } elseif ( $slot['tipus'] === 'h3' ) {
-            $darabok[ $db ] = preg_replace( '/<\/h3>/i', '</h3>' . $figure, $darabok[ $db ], 1 );
-        } else { // 'p' – a bekezdés-pár után
-            $darabok[ $db ] .= $figure;
-        }
+        $varians = $variansok[ $i % 3 ];
+        $figure  = tpu_szakasz_kep_figure( $slot_kep[ $si ], $varians === 'teljes' );
+
+        $darabok[ $slot['db'] ] = '<section class="tpu-szakasz tpu-szakasz--' . $varians . '">'
+            . $figure . '<div class="tpu-szakasz-szoveg">' . $darabok[ $slot['db'] ];
+        $darabok[ $slot['db2'] ] .= '</div></section>';
 
         $hasznalt_idk[] = $slot_kep[ $si ];
         $i++;
@@ -234,6 +229,5 @@ function tpu_kepek_beszovese( $content, $post_id, &$hasznalt_idk ) {
         return $content;
     }
 
-    // Wrapper a scoped CSS-hez (h3 clear + clearfix a lezáráshoz).
     return '<div class="tpu-szoveges-tartalom">' . implode( '', $darabok ) . '</div>';
 }
