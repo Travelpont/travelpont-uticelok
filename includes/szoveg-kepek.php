@@ -34,7 +34,7 @@ function tpu_szoveg_kep_figure( $kep_id, $i ) {
 
     $html  = '<figure class="tpu-szoveg-kep ' . esc_attr( $stilus ) . '">';
     $html .= '<a href="' . esc_url( wp_get_attachment_url( $kep_id ) ) . '" class="tpu-galeria-elem" data-caption="' . esc_attr( $felirat ) . '">';
-    $html .= wp_get_attachment_image( $kep_id, $meret, false, array( 'loading' => 'lazy', 'alt' => $alt ) );
+    $html .= wp_get_attachment_image( $kep_id, $meret, false, array( 'alt' => $alt ) );
     $html .= '</a>';
     if ( $felirat ) {
         $html .= '<figcaption>' . esc_html( $felirat ) . '</figcaption>';
@@ -124,6 +124,11 @@ function tpu_kepek_beszovese( $content, $post_id, &$hasznalt_idk ) {
         return $content;
     }
 
+    // A Portál Quill-szerkesztője a címsor előtti üres sorokat üres <h3></h3>
+    // elemként menti — ezek hézagot okoznak ÉS hamis beszúrási pontot adnának
+    // (a kép a valódi címsor ELÉ kerülne). Eltávolítjuk őket.
+    $content = preg_replace( '#<h([23])>(\s|&\#?\w+;)*</h\1>#u', '', $content );
+
     $galeria_idk = get_post_meta( $post_id, 'tpu_galeria_ids', true );
     $galeria_idk = is_array( $galeria_idk ) ? array_map( 'intval', $galeria_idk ) : array();
     $galeria_idk = array_values( array_filter( $galeria_idk, 'wp_attachment_is_image' ) );
@@ -142,10 +147,9 @@ function tpu_kepek_beszovese( $content, $post_id, &$hasznalt_idk ) {
         $darabok = preg_split( '/(?=<h3)/i', $content );
         foreach ( $darabok as $d => $darab ) {
             $sima = tpu_slot_szoveg( $darab );
+            if ( $sima === '' ) continue; // üres szakasz sosem slot
             if ( $d === 0 ) {
-                if ( $sima !== '' ) {
-                    $slotok[] = array( 'db' => 0, 'tipus' => 'intro', 'szoveg' => $sima );
-                }
+                $slotok[] = array( 'db' => 0, 'tipus' => 'intro', 'szoveg' => $sima );
             } elseif ( stripos( $darab, '</h3>' ) !== false ) {
                 $slotok[] = array( 'db' => $d, 'tipus' => 'h3', 'szoveg' => $sima );
             }
@@ -170,11 +174,17 @@ function tpu_kepek_beszovese( $content, $post_id, &$hasznalt_idk ) {
         return $content;
     }
 
-    // ── 1. kör: felirat-párosítás ────────────────────────────────────────────
+    // Sűrűség-plafon: a szakaszok legfeljebb feléhez jut kép, hogy a szöveg
+    // levegős maradjon — a többi kép a galéria-tömbben jelenik meg.
+    $plafon   = (int) ceil( count( $slotok ) / 2 );
+    $kiosztva = 0;
+
+    // ── 1. kör: felirat-párosítás (elsőbbséget élvez a sorrendi töltéssel szemben) ──
     $slot_kep     = array_fill( 0, count( $slotok ), 0 ); // slot-index → kép ID (0 = üres)
     $sorrendi_sor = array(); // nem párosított képek, feltöltési sorrendben
 
     foreach ( $galeria_idk as $kep_id ) {
+        if ( $kiosztva >= $plafon ) break;
         $talalt = false;
         foreach ( tpu_kep_kulcsszavak( $kep_id ) as $kulcs ) {
             foreach ( $slotok as $si => $slot ) {
@@ -182,6 +192,7 @@ function tpu_kepek_beszovese( $content, $post_id, &$hasznalt_idk ) {
                 if ( tpu_szovegben_szerepel( $kulcs, $slot['szoveg'] ) ) {
                     $slot_kep[ $si ] = $kep_id;
                     $talalt = true;
+                    $kiosztva++;
                     break 2;
                 }
             }
@@ -191,10 +202,12 @@ function tpu_kepek_beszovese( $content, $post_id, &$hasznalt_idk ) {
         }
     }
 
-    // ── 2. kör: a maradék képek a szabad slotokba, sorrendben ────────────────
+    // ── 2. kör: a maradék képek a szabad slotokba, sorrendben, a plafonig ────
     foreach ( $slot_kep as $si => $kep ) {
+        if ( $kiosztva >= $plafon ) break;
         if ( ! $kep && $sorrendi_sor ) {
             $slot_kep[ $si ] = array_shift( $sorrendi_sor );
+            $kiosztva++;
         }
     }
 

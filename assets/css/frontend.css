@@ -226,17 +226,14 @@
     box-shadow: var(--tpu-shadow);
 }
 
+/* Minden szövegközi kép 16:9 — a szerkesztett (16:9-es) forrásképeknél ez
+   NULLA vágást jelent, más arányú képet pedig egységesre igazít. */
 .tpu-szoveg-kep img {
     width: 100%;
-    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
     display: block;
     margin: 0;
-}
-
-/* A nagy "levegővétel"-sáv filmes, széles vágást kap. */
-.tpu-szoveg-kep--nagy img {
-    aspect-ratio: 21 / 9;
-    object-fit: cover;
 }
 
 .tpu-szoveg-kep figcaption {
@@ -252,10 +249,6 @@
         float: none;
         width: 100%;
         margin: 1rem 0;
-    }
-
-    .tpu-szoveg-kep--nagy img {
-        aspect-ratio: 16 / 10; /* mobilon ne legyen túl alacsony a sáv */
     }
 }
 
