@@ -132,6 +132,56 @@
     }
 }
 
+/* ── Fotó-mozaik (gyerek-úticélok: kép + név csempék) ───────────────────── */
+.tpu-grid--mozaik {
+    gap: 1rem;
+}
+
+.tpu-mozaik-csempe {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--tpu-radius);
+    overflow: hidden;
+    background: #e0f2fe;
+    box-shadow: var(--tpu-shadow);
+    text-decoration: none;
+}
+
+.tpu-mozaik-csempe img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    margin: 0;
+    transition: transform .3s ease;
+}
+
+.tpu-mozaik-csempe:hover img,
+.tpu-mozaik-csempe:focus-visible img {
+    transform: scale(1.06);
+}
+
+.tpu-mozaik-ures {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+}
+
+.tpu-mozaik-nev {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 1.6rem .8rem .6rem;
+    background: linear-gradient(transparent, rgba(15, 23, 42, .75));
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.25;
+}
+
 /* ── Gombok ─────────────────────────────────────────────────────────────── */
 .tpu-gomb {
     display: inline-block;
@@ -409,6 +459,12 @@
     .tpu-grid {
         grid-template-columns: 1fr;
         gap: .8rem;
+    }
+
+    /* A mozaik mobilon 2 oszlopos marad (a csempék kicsik, elférnek). */
+    .tpu-grid--mozaik {
+        grid-template-columns: repeat(2, 1fr);
+        gap: .7rem;
     }
 
     .tpu-card {

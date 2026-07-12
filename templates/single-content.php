@@ -156,7 +156,9 @@ $sorrend = ( $szint === 'varos' ) ? array( 'ajanlatok', 'gyerekek' ) : array( 'g
                         'order'          => 'ASC',
                         'posts_per_page' => -1,
                     ) );
-                    $tpu_atts = array( 'oszlopok' => 3 );
+                    // Gyerek-úticélok fotó-mozaikként (kép + név), hogy sok gyerek
+                    // (pl. Olaszország 20 régiója) se nyújtsa el az oldalt.
+                    $tpu_atts = array( 'oszlopok' => 3, 'nezet' => 'mozaik' );
                     echo '<h2 class="tpu-single-alcim">' . esc_html( $csoport_cimek[ $cs ] ) . '</h2>';
                     include TPU_PATH . 'templates/lista-template.php';
                     wp_reset_postdata();

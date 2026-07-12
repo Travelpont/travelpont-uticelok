@@ -8,6 +8,7 @@
  *   limit="-1"      hány úticél jelenjen meg (-1 = összes)
  *   rendezes="sorrend"  sorrend (admin "Sorrend" mező) | nev (ABC)
  *   oszlopok="3"    2 | 3 | 4 – a kártyák kívánt oszlopszáma széles képernyőn
+ *   nezet="kartya"  kartya (hover-overlay kártyák) | mozaik (kép + név csempék)
  *
  * A shortcode Elementorban (Shortcode widget) és blokk-témában
  * (Shortcode blokk) is ugyanúgy használható.
@@ -30,6 +31,7 @@ function tpu_uticelok_shortcode( $atts ) {
         'limit'    => -1,
         'rendezes' => 'sorrend',
         'oszlopok' => 3,
+        'nezet'    => 'kartya',
     ) ), $atts, 'travelpont_uticelok' );
 
     $args = array(
