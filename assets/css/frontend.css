@@ -186,50 +186,29 @@
     line-height: 1.25;
 }
 
-/* ── Szakasz-sorok a leírásban (zig-zag: kép balra / jobbra / teljes) ─────── */
-.tpu-szakasz {
-    display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-    gap: 1.25rem 2rem;
-    align-items: center;
-    margin: 0 0 2.25rem;
+/* ── Szövegközi kép-blokkok (szöveg → kép → szöveg → kép ritmus) ─────────── */
+.tpu-kep-blokk {
+    max-width: 680px;
+    margin: 1.9rem auto 2.1rem;
 }
 
-.tpu-szakasz--kep-jobb {
-    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
-}
-
-.tpu-szakasz--kep-jobb .tpu-szakasz-kep {
-    order: 2;
-}
-
-.tpu-szakasz--teljes {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
-
-.tpu-szakasz-kep {
-    margin: 0;
-}
-
-.tpu-szakasz-kep a {
+.tpu-kep-blokk a {
     display: block;
     border-radius: var(--tpu-radius);
     overflow: hidden;
     box-shadow: var(--tpu-shadow);
 }
 
-/* Minden kép 16:9 — a szerkesztett (16:9-es) forrásképeknél ez NULLA vágást
-   jelent, más arányú képet pedig egységesre igazít. */
-.tpu-szakasz-kep img {
+/* A kép a SAJÁT természetes arányában jelenik meg — nincs arány-kényszer,
+   nincs object-fit, így a képekbe szerkesztett feliratból semmi nem vágódik le. */
+.tpu-kep-blokk img {
     width: 100%;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
+    height: auto;
     display: block;
     margin: 0;
 }
 
-.tpu-szakasz-kep figcaption {
+.tpu-kep-blokk figcaption {
     font-size: .82rem;
     font-style: italic;
     color: var(--tpu-text-light);
@@ -237,24 +216,10 @@
     text-align: center;
 }
 
-.tpu-szakasz-szoveg > :first-child {
-    margin-top: 0;
-}
-
-.tpu-szakasz-szoveg > :last-child {
-    margin-bottom: 0;
-}
-
 @media (max-width: 780px) {
-    .tpu-szakasz,
-    .tpu-szakasz--kep-jobb {
-        grid-template-columns: 1fr;
-        gap: .9rem;
-        margin-bottom: 1.75rem;
-    }
-
-    .tpu-szakasz--kep-jobb .tpu-szakasz-kep {
-        order: 0; /* mobilon a kép mindig a szöveg fölött */
+    .tpu-kep-blokk {
+        max-width: 100%;
+        margin: 1.4rem 0 1.6rem;
     }
 }
 

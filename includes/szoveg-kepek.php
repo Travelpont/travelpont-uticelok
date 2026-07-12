@@ -2,12 +2,11 @@
 /**
  * Travelpont Úticélok – Galéria-képek beszövése a leírás szövegébe
  *
- * A leírás szakaszait (h3-mal tagolt egységeit) a galéria képeivel párba
- * állítva "zig-zag" sorokká alakítja:
- *   1. sor: kép BALRA, szöveg jobbra
- *   2. sor: kép JOBBRA, szöveg balra
- *   3. sor: TELJES szélességű kép, alatta a szöveg
- *   ... és a ritmus ismétlődik. Mobilon minden sor egyoszlopos (kép felül).
+ * Hagyományos, nyugodt ritmus: szövegszakasz → kép → szövegszakasz → kép…
+ * Minden (h3-mal tagolt) szakasz UTÁN egy középre igazított, mérsékelt
+ * szélességű kép-blokk kerül. A kép a SAJÁT természetes képarányában jelenik
+ * meg — semmilyen vágás vagy arány-kényszer nincs (a képekbe szerkesztett
+ * feliratok sosem sérülhetnek).
  *
  * Kép-hozzárendelés két körben:
  *  1. FELIRAT-PÁROSÍTÁS: a kép felirata (vagy címe/fájlneve) alapján ahhoz a
@@ -16,25 +15,22 @@
  *  2. SORREND: ami nem párosítható, a maradék szakaszokat tölti fel a
  *     Portálbeli feltöltési sorrend szerint.
  * A be nem szőtt képek a galéria-tömbben maradnak (lásd single-content.php).
- * Minden kép 16:9 keretben jelenik meg — a szerkesztett 16:9-es forrásképeknél
- * ez NULLA vágást jelent (lásd a képarány-szabályt).
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
- * Egy szakasz-sor képének <figure> markupja.
+ * Egy szövegközi kép-blokk <figure> markupja.
  *
- * @param int  $kep_id  Attachment ID.
- * @param bool $teljes  Teljes szélességű sorba kerül-e (nagyobb képméret).
+ * @param int $kep_id  Attachment ID.
  */
-function tpu_szakasz_kep_figure( $kep_id, $teljes ) {
+function tpu_kep_blokk_figure( $kep_id ) {
     $felirat = wp_get_attachment_caption( $kep_id );
     $alt     = $felirat ? $felirat : get_the_title( $kep_id );
 
-    $html  = '<figure class="tpu-szakasz-kep">';
+    $html  = '<figure class="tpu-kep-blokk">';
     $html .= '<a href="' . esc_url( wp_get_attachment_url( $kep_id ) ) . '" class="tpu-galeria-elem" data-caption="' . esc_attr( $felirat ) . '">';
-    $html .= wp_get_attachment_image( $kep_id, $teljes ? 'large' : 'medium_large', false, array( 'alt' => $alt ) );
+    $html .= wp_get_attachment_image( $kep_id, 'large', false, array( 'alt' => $alt ) );
     $html .= '</a>';
     if ( $felirat ) {
         $html .= '<figcaption>' . esc_html( $felirat ) . '</figcaption>';
@@ -110,7 +106,7 @@ function tpu_szovegben_szerepel( $kulcs, $szoveg ) {
 }
 
 /**
- * A galéria képeinek beszövése a tartalomba (zig-zag szakasz-sorok).
+ * A galéria képeinek beszövése a tartalomba (szöveg → kép → szöveg → kép).
  *
  * @param string $content       A bejegyzés tartalma (HTML).
  * @param int    $post_id       Az úticél ID-je.
@@ -207,22 +203,12 @@ function tpu_kepek_beszovese( $content, $post_id, &$hasznalt_idk ) {
         }
     }
 
-    // ── Szakasz-sorok összeállítása dokumentum-sorrendben ────────────────────
-    // Ritmus: kép balra → kép jobbra → teljes szélességű, majd elölről.
-    $variansok = array( 'kep-bal', 'kep-jobb', 'teljes' );
-    $i = 0;
+    // ── Beszúrás: minden képes szakasz UTÁN egy kép-blokk ────────────────────
     foreach ( $slotok as $si => $slot ) {
-        if ( ! $slot_kep[ $si ] ) continue; // képtelen szakasz változatlan marad
+        if ( ! $slot_kep[ $si ] ) continue; // kép nélküli szakasz változatlan marad
 
-        $varians = $variansok[ $i % 3 ];
-        $figure  = tpu_szakasz_kep_figure( $slot_kep[ $si ], $varians === 'teljes' );
-
-        $darabok[ $slot['db'] ] = '<section class="tpu-szakasz tpu-szakasz--' . $varians . '">'
-            . $figure . '<div class="tpu-szakasz-szoveg">' . $darabok[ $slot['db'] ];
-        $darabok[ $slot['db2'] ] .= '</div></section>';
-
+        $darabok[ $slot['db2'] ] .= tpu_kep_blokk_figure( $slot_kep[ $si ] );
         $hasznalt_idk[] = $slot_kep[ $si ];
-        $i++;
     }
 
     if ( ! $hasznalt_idk ) {
