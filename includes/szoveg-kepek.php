@@ -50,10 +50,16 @@ function tpu_inline_kepek_diszitese( $content, &$hasznalt_idk ) {
         return $content;
     }
 
-    return preg_replace_callback(
-        '/<img[^>]*class="tpu-inline-kep"[^>]*data-id="(\d+)"[^>]*>/i',
+    // A jelölőt a class alapján fogjuk meg, a data-id-t a tagen BELÜL keressük —
+    // a böngésző/Quill tetszőleges attribútum-sorrendben szerializálhat
+    // (élesben pl. <img decoding src data-id alt class> sorrend jön).
+    $content = preg_replace_callback(
+        '/<img[^>]*\btpu-inline-kep\b[^>]*>/i',
         function( $m ) use ( &$hasznalt_idk ) {
-            $kep_id = (int) $m[1];
+            if ( ! preg_match( '/data-id="(\d+)"/i', $m[0], $id_m ) ) {
+                return ''; // jelölő azonosító nélkül — nem tudjuk kirajzolni
+            }
+            $kep_id = (int) $id_m[1];
             if ( ! wp_attachment_is_image( $kep_id ) ) {
                 return ''; // törölt/érvénytelen kép — csendben eltűnik
             }
@@ -62,4 +68,12 @@ function tpu_inline_kepek_diszitese( $content, &$hasznalt_idk ) {
         },
         $content
     );
+
+    // A wpautop a magányos img-jelölőt <p>-be csomagolta; a figure blokk-elem,
+    // ezért a köréje ragadt <p>…</p> héjat leszedjük (kósza üres bekezdések
+    // és érvénytelen beágyazás ellen).
+    $content = preg_replace( '#<p>\s*(<figure class="tpu-kep-blokk">)#', '$1', $content );
+    $content = preg_replace( '#(</figure>)\s*</p>#', '$1', $content );
+
+    return $content;
 }
