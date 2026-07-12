@@ -5,6 +5,10 @@
  * A Travelpont Ajánlatok mintáját követve a tartalom ELÉ fűzzük be az
  * úticél-dobozt a the_content szűrővel – ez blokk-témával ÉS Hello
  * Elementorral is ugyanúgy működik, a témaváltás nem töri el.
+ *
+ * Végleges sorrend: doboz (infók, térkép, gyerek-mozaik, ajánlatok) →
+ * törzsszöveg (a szerkesztő által kézzel elhelyezett képekkel) → a
+ * szövegben fel nem használt galéria-képek "További fotóink" mozaikja.
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -16,15 +20,24 @@ add_filter( 'the_content', function( $content ) {
 
     wp_enqueue_style( 'travelpont-uticelok' );
 
-    // ELŐBB a galéria-képek beszövése a szövegbe — a használt ID-kat a
-    // single-content.php galéria-tömbje kihagyja (nincs duplikáció).
+    $post_id = get_the_ID();
+
+    // A szerkesztő által a szövegbe kézzel beillesztett kép-jelölők díszítése.
     $hasznalt = array();
-    $content  = tpu_kepek_beszovese( $content, get_the_ID(), $hasznalt );
-    $GLOBALS['tpu_szott_kep_idk'] = $hasznalt;
+    $content  = tpu_inline_kepek_diszitese( $content, $hasznalt );
 
     ob_start();
     include TPU_PATH . 'templates/single-content.php';
     $uticel_doboz = ob_get_clean();
 
-    return $uticel_doboz . $content;
+    // A szövegben fel nem használt galéria-képek a cikk VÉGÉN, rendezett mozaikban.
+    $galeria_idk = get_post_meta( $post_id, 'tpu_galeria_ids', true );
+    $galeria_idk = is_array( $galeria_idk ) ? array_map( 'intval', $galeria_idk ) : array();
+    $tpu_tovabbi_kep_idk = array_values( array_diff( $galeria_idk, $hasznalt ) );
+
+    ob_start();
+    include TPU_PATH . 'templates/galeria-mozaik.php';
+    $tovabbi_fotok = ob_get_clean();
+
+    return $uticel_doboz . $content . $tovabbi_fotok;
 } );
