@@ -18,6 +18,9 @@ $szint_cimke = tpu_szint_cimke( tpu_szint_erteke( $post_id ) );
             <?php else : ?>
                 <div class="tpu-card-kep-ures">🌍</div>
             <?php endif; ?>
+            <?php if ( $leiras ) : ?>
+                <div class="tpu-card-overlay"><p><?php echo esc_html( $leiras ); ?></p></div>
+            <?php endif; ?>
         </div>
     </a>
 
@@ -28,10 +31,6 @@ $szint_cimke = tpu_szint_cimke( tpu_szint_erteke( $post_id ) );
         <h3 class="tpu-card-cim">
             <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
         </h3>
-
-        <?php if ( $leiras ) : ?>
-            <p class="tpu-card-leiras"><?php echo esc_html( $leiras ); ?></p>
-        <?php endif; ?>
 
         <a class="tpu-gomb" href="<?php the_permalink(); ?>">Felfedezem</a>
     </div>

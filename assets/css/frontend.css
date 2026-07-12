@@ -102,11 +102,34 @@
     color: var(--tpu-primary);
 }
 
-.tpu-card-leiras {
+/* A kedvcsináló leírás a kép fölé úszik be – csak hover-képes eszközön. */
+.tpu-card-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.1rem;
+    background: rgba(15, 23, 42, .78);
+    opacity: 0;
+    transition: opacity .25s ease;
+}
+
+.tpu-card-overlay p {
     margin: 0;
-    font-size: .9rem;
-    color: var(--tpu-text-light);
-    flex: 1;
+    color: #fff;
+    font-size: .88rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 7;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+@media (hover: hover) {
+    .tpu-card:hover .tpu-card-overlay,
+    .tpu-card:focus-within .tpu-card-overlay {
+        opacity: 1;
+    }
 }
 
 /* ── Gombok ─────────────────────────────────────────────────────────────── */
@@ -381,9 +404,48 @@
     margin: 0 0 .4rem;
 }
 
-/* ── Mobil finomítások ──────────────────────────────────────────────────── */
-@media (max-width: 480px) {
+/* ── Mobil finomítások: kompakt fekvő kártya-sorok ──────────────────────── */
+@media (max-width: 600px) {
     .tpu-grid {
-        gap: 1rem;
+        grid-template-columns: 1fr;
+        gap: .8rem;
+    }
+
+    .tpu-card {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+    }
+
+    .tpu-card-kep-link {
+        height: 100%;
+    }
+
+    .tpu-card-kep {
+        aspect-ratio: auto;
+        height: 100%;
+        min-height: 96px;
+    }
+
+    .tpu-card-overlay {
+        display: none;
+    }
+
+    .tpu-card-kep-ures {
+        font-size: 2rem;
+    }
+
+    .tpu-card-torzs {
+        padding: .6rem .9rem;
+        gap: .3rem;
+        justify-content: center;
+    }
+
+    .tpu-card-cim {
+        font-size: 1.02rem;
+    }
+
+    .tpu-card-torzs .tpu-gomb {
+        padding: .4rem .95rem;
+        font-size: .82rem;
     }
 }
