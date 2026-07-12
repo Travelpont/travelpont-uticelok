@@ -57,7 +57,8 @@
 
 .tpu-card-kep {
     position: relative;
-    aspect-ratio: 16 / 10;
+    /* 16:9 = a szerkesztett borítóképek natív aránya, nincs oldalsó levágás. */
+    aspect-ratio: 16 / 9;
     overflow: hidden;
     background: #e0f2fe;
 }
@@ -140,7 +141,9 @@
 .tpu-mozaik-csempe {
     position: relative;
     display: block;
-    aspect-ratio: 4 / 3;
+    /* A borítóképek 1920x1080-asak, beléjük szerkesztett felirattal —
+       a 16:9 arány vágás nélkül mutatja a teljes képet. */
+    aspect-ratio: 16 / 9;
     border-radius: var(--tpu-radius);
     overflow: hidden;
     background: #e0f2fe;
@@ -159,7 +162,8 @@
 
 .tpu-mozaik-csempe:hover img,
 .tpu-mozaik-csempe:focus-visible img {
-    transform: scale(1.06);
+    /* Visszafogott zoom, hogy a képbe szerkesztett felirat hover-re se lógjon ki. */
+    transform: scale(1.03);
 }
 
 .tpu-mozaik-ures {
