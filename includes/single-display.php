@@ -16,6 +16,12 @@ add_filter( 'the_content', function( $content ) {
 
     wp_enqueue_style( 'travelpont-uticelok' );
 
+    // ELŐBB a galéria-képek beszövése a szövegbe — a használt ID-kat a
+    // single-content.php galéria-tömbje kihagyja (nincs duplikáció).
+    $hasznalt = array();
+    $content  = tpu_kepek_beszovese( $content, get_the_ID(), $hasznalt );
+    $GLOBALS['tpu_szott_kep_idk'] = $hasznalt;
+
     ob_start();
     include TPU_PATH . 'templates/single-content.php';
     $uticel_doboz = ob_get_clean();

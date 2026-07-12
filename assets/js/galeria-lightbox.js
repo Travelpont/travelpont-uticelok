@@ -11,10 +11,9 @@
 (function () {
     'use strict';
 
-    var galeria = document.querySelector('.tpu-galeria');
-    if (!galeria) return;
-
-    var linkek = Array.prototype.slice.call(galeria.querySelectorAll('.tpu-galeria-elem'));
+    // A galéria-tömb ÉS a leírásba beszőtt képek (tpu-szoveg-kep) együtt,
+    // DOM-sorrendben — egy közös lightbox-folyamban lapozhatók.
+    var linkek = Array.prototype.slice.call(document.querySelectorAll('.tpu-galeria-elem'));
     if (!linkek.length) return;
 
     var kepek = linkek.map(function (a) {

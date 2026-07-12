@@ -96,6 +96,8 @@ $sorrend = ( $szint === 'varos' ) ? array( 'ajanlatok', 'gyerekek' ) : array( 'g
     // ── Galéria (a Portálból feltöltött további fotók, tpu_galeria_ids meta) ──
     $galeria_idk = get_post_meta( $post_id, 'tpu_galeria_ids', true );
     $galeria_idk = is_array( $galeria_idk ) ? array_map( 'intval', $galeria_idk ) : array();
+    // A leírás szövegébe beszőtt képek (lásd szoveg-kepek.php) itt már nem jelennek meg.
+    $galeria_idk = array_values( array_diff( $galeria_idk, isset( $GLOBALS['tpu_szott_kep_idk'] ) ? $GLOBALS['tpu_szott_kep_idk'] : array() ) );
     if ( $galeria_idk ) : ?>
         <div class="tpu-galeria">
             <?php foreach ( $galeria_idk as $kep_id ) :

@@ -186,6 +186,79 @@
     line-height: 1.25;
 }
 
+/* ── Szövegközi képek a leírásban (mix: úszó + teljes szélességű) ────────── */
+.tpu-szoveges-tartalom h3 {
+    clear: both;
+}
+
+.tpu-szoveges-tartalom::after {
+    content: '';
+    display: block;
+    clear: both;
+}
+
+.tpu-szoveg-kep {
+    margin: .3rem 0 1.1rem;
+}
+
+.tpu-szoveg-kep--jobb {
+    float: right;
+    width: 44%;
+    margin-left: 1.5rem;
+}
+
+.tpu-szoveg-kep--bal {
+    float: left;
+    width: 44%;
+    margin-right: 1.5rem;
+}
+
+.tpu-szoveg-kep--nagy {
+    clear: both;
+    width: 100%;
+    margin: 1.6rem 0;
+}
+
+.tpu-szoveg-kep a {
+    display: block;
+    border-radius: var(--tpu-radius);
+    overflow: hidden;
+    box-shadow: var(--tpu-shadow);
+}
+
+.tpu-szoveg-kep img {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0;
+}
+
+/* A nagy "levegővétel"-sáv filmes, széles vágást kap. */
+.tpu-szoveg-kep--nagy img {
+    aspect-ratio: 21 / 9;
+    object-fit: cover;
+}
+
+.tpu-szoveg-kep figcaption {
+    font-size: .82rem;
+    font-style: italic;
+    color: var(--tpu-text-light);
+    margin-top: .45rem;
+}
+
+@media (max-width: 700px) {
+    .tpu-szoveg-kep--jobb,
+    .tpu-szoveg-kep--bal {
+        float: none;
+        width: 100%;
+        margin: 1rem 0;
+    }
+
+    .tpu-szoveg-kep--nagy img {
+        aspect-ratio: 16 / 10; /* mobilon ne legyen túl alacsony a sáv */
+    }
+}
+
 /* ── Gombok ─────────────────────────────────────────────────────────────── */
 .tpu-gomb {
     display: inline-block;
