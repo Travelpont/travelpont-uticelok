@@ -33,9 +33,34 @@ add_filter( 'the_content', function( $content ) {
     $galeria_idk = is_array( $galeria_idk ) ? array_map( 'intval', $galeria_idk ) : array();
     $content     = tpu_fotomozaik_beillesztes( $content, $galeria_idk, $hasznalt );
 
+    // Tartalmi widgetek (Portál vászon-szerkesztő): CTA-linkek díszítése,
+    // majd a szerver-adatos helyjelzők kitöltése.
+    $content = tpu_cta_diszitese( $content );
+    $content = tpu_video_render( $content );
+    $content = tpu_terkep_widget_render( $content );
+    $content = tpu_ajanlat_widget_render( $content );
+    $content = tpu_uticel_widget_render( $content );
+
+    // GYIK strukturált adat (FAQPage) a láblécbe — lásd a wp_footer hook-ot lent.
+    $gyik_schema = tpu_gyik_schema_json( $content );
+    if ( $gyik_schema ) {
+        $GLOBALS['tpu_gyik_schema'] = $gyik_schema;
+    }
+
+    // A videó-lejátszó apró JS-e csak akkor töltődik, ha van videó az oldalon.
+    if ( strpos( $content, 'tpu-video-doboz' ) !== false ) {
+        wp_enqueue_script( 'travelpont-uticelok-video' );
+    }
+
     ob_start();
     include TPU_PATH . 'templates/single-content.php';
     $uticel_doboz = ob_get_clean();
 
     return $uticel_doboz . $content;
+} );
+
+// A the_content futásakor összegyűjtött GYIK-schema kiírása a láblécben.
+add_action( 'wp_footer', function() {
+    if ( empty( $GLOBALS['tpu_gyik_schema'] ) ) return;
+    echo '<script type="application/ld+json">' . $GLOBALS['tpu_gyik_schema'] . '</script>' . "\n";
 } );

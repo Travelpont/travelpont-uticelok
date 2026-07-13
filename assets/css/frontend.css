@@ -285,6 +285,171 @@
     .tpu-galeria-sor { flex-direction: column; }
 }
 
+/* ── Kiemelés-doboz (Jó tudni / Tipp / Figyelem) ─────────────────────────── */
+.tpu-kiemeles {
+    position: relative;
+    border: 1px solid;
+    border-radius: var(--tpu-radius);
+    padding: 1rem 1.3rem 1rem 3.1rem;
+    margin: 1.6rem 0;
+}
+
+.tpu-kiemeles::before {
+    position: absolute;
+    left: 1.05rem;
+    top: .95rem;
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.tpu-kiemeles > :first-child { margin-top: 0; }
+.tpu-kiemeles > :last-child  { margin-bottom: 0; }
+
+.tpu-kiemeles--jotudni { background: #eff6ff; border-color: #bfdbfe; }
+.tpu-kiemeles--jotudni::before { content: "ℹ️"; }
+.tpu-kiemeles--tipp { background: #f0fdf4; border-color: #bbf7d0; }
+.tpu-kiemeles--tipp::before { content: "💡"; }
+.tpu-kiemeles--figyelem { background: #fffbeb; border-color: #fde68a; }
+.tpu-kiemeles--figyelem::before { content: "⚠️"; }
+
+/* ── CTA-gomb (a szövegbe szúrt konverziós gomb) ─────────────────────────── */
+.tpu-cta {
+    display: table; /* blokk-szintű, tartalom-széles, középre igazítva */
+    margin: 1.7rem auto;
+    background: var(--tpu-primary);
+    color: #fff !important;
+    padding: .75rem 1.9rem;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-decoration: none !important;
+    text-align: center;
+    box-shadow: var(--tpu-shadow);
+    transition: background .15s ease, transform .15s ease;
+}
+
+.tpu-cta:hover {
+    background: var(--tpu-primary-dark);
+    transform: translateY(-1px);
+}
+
+/* ── GYIK (natív lenyíló kérdés-válasz) ──────────────────────────────────── */
+.tpu-gyik {
+    border: 1px solid var(--tpu-card-border);
+    border-radius: var(--tpu-radius);
+    margin: .7rem 0;
+    background: var(--tpu-card-bg);
+    overflow: hidden;
+}
+
+.tpu-gyik summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: .95rem 2.6rem .95rem 1.15rem;
+    position: relative;
+    list-style: none;
+}
+
+.tpu-gyik summary::-webkit-details-marker { display: none; }
+
+.tpu-gyik summary::after {
+    content: "+";
+    position: absolute;
+    right: 1.05rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.35rem;
+    font-weight: 400;
+    color: var(--tpu-primary);
+}
+
+.tpu-gyik[open] summary::after { content: "–"; }
+
+.tpu-gyik[open] summary { border-bottom: 1px solid var(--tpu-card-border); }
+
+.tpu-gyik-valasz { padding: .85rem 1.15rem 1rem; }
+.tpu-gyik-valasz > :first-child { margin-top: 0; }
+.tpu-gyik-valasz > :last-child  { margin-bottom: 0; }
+
+/* ── YouTube-videó (kattintásra töltő beágyazás) ─────────────────────────── */
+.tpu-video-doboz {
+    position: relative;
+    max-width: 680px;
+    margin: 1.9rem auto 2.1rem;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--tpu-radius);
+    overflow: hidden;
+    box-shadow: var(--tpu-shadow);
+    background: #000;
+}
+
+.tpu-video-doboz iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+}
+
+.tpu-video-inditas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    background: #000;
+    position: relative;
+}
+
+/* A YouTube-bélyegkép nem a mi szerkesztett képünk — itt megengedett a cover. */
+.tpu-video-inditas img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: .85;
+    display: block;
+    margin: 0;
+    transition: opacity .15s ease;
+}
+
+.tpu-video-inditas:hover img { opacity: 1; }
+
+.tpu-video-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(14, 116, 144, .92);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    padding-left: 4px;
+    transition: background .15s ease;
+}
+
+.tpu-video-inditas:hover .tpu-video-play { background: var(--tpu-primary-dark); }
+
+/* ── Szövegközi térkép-widget ────────────────────────────────────────────── */
+.tpu-terkep--szovegkozi { margin: 1.9rem 0 2.1rem; }
+
+/* ── Beszúrt ajánlat-kártya / úticél-ajánló ──────────────────────────────── */
+.tpu-ajanlat-beszurt {
+    display: grid;
+    grid-template-columns: 1fr; /* a tpa-grid többoszlopossága helyett egy kártya */
+    max-width: 420px;
+    margin: 1.9rem auto 2.1rem;
+}
+
+.tpu-uticel-beszurt {
+    max-width: 420px;
+    margin: 1.9rem auto 2.1rem;
+}
+
 /* ── Gombok ─────────────────────────────────────────────────────────────── */
 .tpu-gomb {
     display: inline-block;

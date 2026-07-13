@@ -149,3 +149,152 @@ function tpu_fotomozaik_beillesztes( $content, $galeria_idk, $hasznalt_idk ) {
         return $mozaik;
     }, $content );
 }
+
+/* ═══════════════════ Tartalmi widgetek (Portál vászon-szerkesztő) ═══════════════════
+   A kiemelés-doboz (.tpu-kiemeles) és a GYIK (.tpu-gyik, natív details/summary)
+   nem igényel PHP-t — tiszta CSS. Az alábbiak a szerver-adatos/biztonsági
+   feldolgozást végzik. */
+
+/**
+ * CTA-gombok díszítése: külső (pl. affiliate) linknél új fül + sponsored
+ * jelölés; belső linknél a tag változatlan.
+ *
+ * @param string $content    A tartalom.
+ * @param string $sajat_host A saját domain (tesztelhetőség; üresen a home_url()-ból).
+ */
+function tpu_cta_diszitese( $content, $sajat_host = '' ) {
+    if ( '' === $sajat_host ) {
+        $sajat_host = (string) wp_parse_url( home_url(), PHP_URL_HOST );
+    }
+    return preg_replace_callback( '/<a[^>]*\btpu-cta\b[^>]*>/i', function( $m ) use ( $sajat_host ) {
+        $tag = $m[0];
+        if ( ! preg_match( '/href="([^"]*)"/i', $tag, $h ) ) {
+            return $tag;
+        }
+        $host = wp_parse_url( html_entity_decode( $h[1], ENT_QUOTES ), PHP_URL_HOST );
+        if ( ! $host || $host === $sajat_host ) {
+            return $tag; // belső vagy relatív link — marad, ahogy van
+        }
+        return substr( $tag, 0, -1 ) . ' target="_blank" rel="sponsored nofollow noopener">';
+    }, $content );
+}
+
+/**
+ * YouTube-videó helyjelzők → kattintásra töltő beágyazás (adatkímélő,
+ * gyors oldal; az iframe-et a tpu-video.js cseréli be youtube-nocookie-val).
+ */
+function tpu_video_render( $content ) {
+    return preg_replace_callback( '/<div[^>]*class="tpu-video"[^>]*>\s*<\/div>/i', function( $m ) {
+        if ( ! preg_match( '/data-youtube="([A-Za-z0-9_-]{6,15})"/', $m[0], $id_m ) ) {
+            return ''; // érvénytelen azonosító — csendben eltűnik
+        }
+        $id = $id_m[1];
+        return '<div class="tpu-video-doboz" data-youtube="' . esc_attr( $id ) . '">'
+            . '<button type="button" class="tpu-video-inditas" aria-label="Videó lejátszása">'
+            . '<img src="' . esc_url( 'https://i.ytimg.com/vi/' . $id . '/hqdefault.jpg' ) . '" loading="lazy" alt="">'
+            . '<span class="tpu-video-play">▶</span>'
+            . '</button></div>';
+    }, $content );
+}
+
+/**
+ * Térkép-helyjelzők → iframe, KIZÁRÓLAG Google Maps beágyazási URL-lel
+ * (ugyanaz a whitelist-elv, mint a tpu_terkep mező sanitizerénél) —
+ * tetszőleges iframe nem csempészhető be.
+ */
+function tpu_terkep_widget_render( $content ) {
+    return preg_replace_callback( '/<div[^>]*class="tpu-terkep-widget"[^>]*>\s*<\/div>/i', function( $m ) {
+        if ( ! preg_match( '/data-src="([^"]*)"/i', $m[0], $src_m ) ) {
+            return '';
+        }
+        $src = html_entity_decode( $src_m[1], ENT_QUOTES );
+        if ( strpos( $src, 'https://www.google.com/maps/embed' ) !== 0 ) {
+            return ''; // nem Google-embed — nem rendereljük
+        }
+        return '<div class="tpu-terkep tpu-terkep--szovegkozi">'
+            . '<iframe src="' . esc_url( $src ) . '" height="380" style="border:0;" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>'
+            . '</div>';
+    }, $content );
+}
+
+/**
+ * Egy bejegyzés kirajzolása a saját sablonjával, ideiglenes globális
+ * $post-cserével (a kártya-sablonok the_title()/the_permalink()-re épülnek).
+ */
+function tpu_widget_sablon_html( $bejegyzes, $sablon_utvonal ) {
+    $eredeti = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+    $GLOBALS['post'] = $bejegyzes;
+    setup_postdata( $bejegyzes );
+    ob_start();
+    include $sablon_utvonal;
+    $html = ob_get_clean();
+    $GLOBALS['post'] = $eredeti;
+    wp_reset_postdata();
+    return $html;
+}
+
+/**
+ * Ajánlat-kártya helyjelzők → a travelpont-ajanlatok kártya-sablonja.
+ * Hiányzó/visszavont/lejárt-törölt ajánlatnál a helyjelző nyomtalanul eltűnik;
+ * ha az Ajánlatok plugin nincs aktív, egyszerű link-gomb a tartalék.
+ */
+function tpu_ajanlat_widget_render( $content ) {
+    return preg_replace_callback( '/<div[^>]*class="tpu-ajanlat-widget"[^>]*>\s*<\/div>/i', function( $m ) {
+        if ( ! preg_match( '/data-id="(\d+)"/', $m[0], $id_m ) ) {
+            return '';
+        }
+        $ajanlat = get_post( (int) $id_m[1] );
+        if ( ! $ajanlat || 'ajanlat' !== $ajanlat->post_type || 'publish' !== $ajanlat->post_status ) {
+            return '';
+        }
+        if ( ! function_exists( 'tpa_mezo' ) || ! defined( 'TPA_PATH' ) ) {
+            return '<p class="tpu-cta-sor"><a class="tpu-cta" href="' . esc_url( get_permalink( $ajanlat ) ) . '">' . esc_html( get_the_title( $ajanlat ) ) . ' →</a></p>';
+        }
+        $kartya = tpu_widget_sablon_html( $ajanlat, TPA_PATH . 'templates/card-template.php' );
+        return '<div class="tpu-ajanlat-beszurt tpa-grid">' . $kartya . '</div>';
+    }, $content );
+}
+
+/**
+ * Úticél-ajánló helyjelzők → fotó-csempe (mozaik-csempe.php) a saját
+ * oldalára linkelve. Nem publikált/törölt úticélnál eltűnik.
+ */
+function tpu_uticel_widget_render( $content ) {
+    return preg_replace_callback( '/<div[^>]*class="tpu-uticel-widget"[^>]*>\s*<\/div>/i', function( $m ) {
+        if ( ! preg_match( '/data-id="(\d+)"/', $m[0], $id_m ) ) {
+            return '';
+        }
+        $uticel = get_post( (int) $id_m[1] );
+        if ( ! $uticel || 'uticel' !== $uticel->post_type || 'publish' !== $uticel->post_status ) {
+            return '';
+        }
+        $csempe = tpu_widget_sablon_html( $uticel, TPU_PATH . 'templates/mozaik-csempe.php' );
+        return '<div class="tpu-uticel-beszurt">' . $csempe . '</div>';
+    }, $content );
+}
+
+/**
+ * FAQPage JSON-LD a tartalom GYIK-elemeiből (Google rich result).
+ * Üres string, ha nincs (érvényes) GYIK.
+ */
+function tpu_gyik_schema_json( $content ) {
+    if ( ! preg_match_all( '/<details[^>]*class="[^"]*tpu-gyik[^"]*"[^>]*>\s*<summary[^>]*>([\s\S]*?)<\/summary>\s*<div[^>]*class="[^"]*tpu-gyik-valasz[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/details>/i', $content, $mk, PREG_SET_ORDER ) ) {
+        return '';
+    }
+    $kerdesek = array();
+    foreach ( $mk as $par ) {
+        $kerdes = trim( wp_strip_all_tags( $par[1] ) );
+        $valasz = trim( wp_strip_all_tags( $par[2] ) );
+        if ( '' === $kerdes || '' === $valasz ) continue;
+        $kerdesek[] = array(
+            '@type'          => 'Question',
+            'name'           => $kerdes,
+            'acceptedAnswer' => array( '@type' => 'Answer', 'text' => $valasz ),
+        );
+    }
+    if ( ! $kerdesek ) return '';
+    return wp_json_encode(
+        array( '@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => $kerdesek ),
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+    );
+}
