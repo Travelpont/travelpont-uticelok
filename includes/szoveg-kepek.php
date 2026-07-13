@@ -94,3 +94,58 @@ function tpu_inline_kepek_diszitese( $content, &$hasznalt_idk ) {
 
     return $content;
 }
+
+/**
+ * A fotó-mozaik rácsának HTML-je (cím nélkül — címsort a szerkesztő ad elé,
+ * ha szeretne). A képek TELJES egészében látszanak (contain a CSS-ben),
+ * vágás sosem történik; a cellák a lightboxba is bekötődnek (tpu-galeria-elem).
+ *
+ * @param int[] $kep_idk Attachment ID-k.
+ * @return string Üres string, ha nincs megjeleníthető kép.
+ */
+function tpu_fotomozaik_html( $kep_idk ) {
+    $cellak = '';
+    foreach ( $kep_idk as $kep_id ) {
+        if ( ! wp_attachment_is_image( $kep_id ) ) continue;
+        $felirat = wp_get_attachment_caption( $kep_id );
+        $alt     = $felirat ? $felirat : get_the_title( $kep_id );
+
+        $cellak .= '<a class="tpu-mozaik-csempe tpu-mozaik-csempe--galeria tpu-galeria-elem" href="' . esc_url( wp_get_attachment_url( $kep_id ) ) . '" data-caption="' . esc_attr( $felirat ) . '">'
+            . wp_get_attachment_image( $kep_id, 'medium_large', false, array( 'loading' => 'lazy', 'alt' => $alt ) )
+            . ( $felirat ? '<span class="tpu-mozaik-nev">' . esc_html( $felirat ) . '</span>' : '' )
+            . '</a>';
+    }
+    if ( '' === $cellak ) return '';
+    return '<div class="tpu-grid tpu-grid--mozaik" style="--tpu-card-min: 190px;">' . $cellak . '</div>';
+}
+
+/**
+ * A szerkesztő által elhelyezett fotó-mozaik helyjelző
+ * (<div class="tpu-fotomozaik"></div>) kicserélése a szövegben fel nem
+ * használt galéria-képek rácsára — PONTOSAN ott, ahova a szerkesztő tette.
+ * Helyjelző nélkül a fel nem használt képek NEM jelennek meg sehol
+ * (a korábbi automatikus cikk végi hozzáfűzés kivezetve — a szerkesztő dönt).
+ * Csak az első helyjelző renderel; az esetleges továbbiak eltűnnek.
+ *
+ * @param string $content      A (már jelölő-díszített) tartalom.
+ * @param int[]  $galeria_idk  A teljes galéria attachment ID-i.
+ * @param int[]  $hasznalt_idk A szövegben már felhasznált ID-k.
+ */
+function tpu_fotomozaik_beillesztes( $content, $galeria_idk, $hasznalt_idk ) {
+    $re = '/<div[^>]*\btpu-fotomozaik\b[^>]*>\s*<\/div>/i';
+    if ( ! preg_match( $re, $content ) ) {
+        return $content;
+    }
+
+    $maradek = array_values( array_diff( array_map( 'intval', $galeria_idk ), array_map( 'intval', $hasznalt_idk ) ) );
+    $mozaik  = tpu_fotomozaik_html( $maradek );
+
+    // Callback-kel cserélünk, hogy a kép-URL-ek $-jelei ne sérüljenek,
+    // és csak az első helyjelző kapja meg a rácsot.
+    $volt = false;
+    return preg_replace_callback( $re, function() use ( &$volt, $mozaik ) {
+        if ( $volt ) return '';
+        $volt = true;
+        return $mozaik;
+    }, $content );
+}

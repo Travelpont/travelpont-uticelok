@@ -7,8 +7,9 @@
  * Elementorral is ugyanúgy működik, a témaváltás nem töri el.
  *
  * Végleges sorrend: doboz (infók, térkép, gyerek-mozaik, ajánlatok) →
- * törzsszöveg (a szerkesztő által kézzel elhelyezett képekkel) → a
- * szövegben fel nem használt galéria-képek "További fotóink" mozaikja.
+ * törzsszöveg (a szerkesztő által kézzel elhelyezett képekkel és — ha a
+ * szerkesztő betette a 📷 helyjelzőt — a fel nem használt galéria-képek
+ * mozaikjával, pontosan ott, ahova tette).
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -26,18 +27,15 @@ add_filter( 'the_content', function( $content ) {
     $hasznalt = array();
     $content  = tpu_inline_kepek_diszitese( $content, $hasznalt );
 
+    // Fotó-mozaik a szerkesztő által elhelyezett helyjelzőnél (ha nincs
+    // helyjelző, a fel nem használt galéria-képek nem jelennek meg sehol).
+    $galeria_idk = get_post_meta( $post_id, 'tpu_galeria_ids', true );
+    $galeria_idk = is_array( $galeria_idk ) ? array_map( 'intval', $galeria_idk ) : array();
+    $content     = tpu_fotomozaik_beillesztes( $content, $galeria_idk, $hasznalt );
+
     ob_start();
     include TPU_PATH . 'templates/single-content.php';
     $uticel_doboz = ob_get_clean();
 
-    // A szövegben fel nem használt galéria-képek a cikk VÉGÉN, rendezett mozaikban.
-    $galeria_idk = get_post_meta( $post_id, 'tpu_galeria_ids', true );
-    $galeria_idk = is_array( $galeria_idk ) ? array_map( 'intval', $galeria_idk ) : array();
-    $tpu_tovabbi_kep_idk = array_values( array_diff( $galeria_idk, $hasznalt ) );
-
-    ob_start();
-    include TPU_PATH . 'templates/galeria-mozaik.php';
-    $tovabbi_fotok = ob_get_clean();
-
-    return $uticel_doboz . $content . $tovabbi_fotok;
+    return $uticel_doboz . $content;
 } );
