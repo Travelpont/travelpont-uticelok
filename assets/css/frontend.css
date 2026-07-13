@@ -227,11 +227,62 @@
     text-align: center;
 }
 
+/* Méret-változatok (a Portál kép-blokkján választható). A képarány-szabály
+   (16:9 keret + contain, sosem vág) mindegyikre változatlanul érvényes. */
+.tpu-kep-blokk--teljes { max-width: none; }
+.tpu-kep-blokk--kicsi  { max-width: 420px; }
+
+/* ── Kép+szöveg páros blokk (a Portál blokk-szerkesztőjéből) ──────────────
+   Szerkezete: .tpu-kep-szoveg > figure.tpu-kep-blokk + .tpu-kep-szoveg-torzs */
+.tpu-kep-szoveg {
+    display: grid;
+    grid-template-columns: 5fr 6fr;
+    gap: 1.8rem;
+    align-items: center;
+    margin: 1.9rem 0 2.1rem;
+}
+
+.tpu-kep-szoveg .tpu-kep-blokk {
+    margin: 0;
+    max-width: none;
+}
+
+.tpu-kep-szoveg--jobb .tpu-kep-blokk { order: 2; }
+
+.tpu-kep-szoveg-torzs > :first-child { margin-top: 0; }
+.tpu-kep-szoveg-torzs > :last-child  { margin-bottom: 0; }
+
+/* ── Kép-sor: 2-3 kép egymás mellett (a Portál blokk-szerkesztőjéből) ───── */
+.tpu-galeria-sor {
+    display: flex;
+    gap: .9rem;
+    margin: 1.9rem 0 2.1rem;
+}
+
+.tpu-galeria-sor .tpu-kep-blokk {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
+    max-width: none;
+}
+
 @media (max-width: 780px) {
     .tpu-kep-blokk {
         max-width: 100%;
         margin: 1.4rem 0 1.6rem;
     }
+
+    /* A páros blokk mobilon egymás alá esik, a kép kerül felülre. */
+    .tpu-kep-szoveg {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .tpu-kep-szoveg--jobb .tpu-kep-blokk { order: 0; }
+}
+
+@media (max-width: 600px) {
+    /* A kép-sor kis kijelzőn egymás alá esik. */
+    .tpu-galeria-sor { flex-direction: column; }
 }
 
 /* ── Gombok ─────────────────────────────────────────────────────────────── */

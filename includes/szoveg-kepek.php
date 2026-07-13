@@ -16,13 +16,20 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Egy szövegközi kép-blokk <figure> markupja.
  *
- * @param int $kep_id  Attachment ID.
+ * @param int    $kep_id Attachment ID.
+ * @param string $meret  '' (normál) | 'teljes' | 'kicsi' — a Portál
+ *                       kép-blokkján választott megjelenítési méret.
  */
-function tpu_kep_blokk_figure( $kep_id ) {
+function tpu_kep_blokk_figure( $kep_id, $meret = '' ) {
     $felirat = wp_get_attachment_caption( $kep_id );
     $alt     = $felirat ? $felirat : get_the_title( $kep_id );
 
-    $html  = '<figure class="tpu-kep-blokk">';
+    $class = 'tpu-kep-blokk';
+    if ( in_array( $meret, array( 'teljes', 'kicsi' ), true ) ) {
+        $class .= ' tpu-kep-blokk--' . $meret;
+    }
+
+    $html  = '<figure class="' . esc_attr( $class ) . '">';
     $html .= '<a href="' . esc_url( wp_get_attachment_url( $kep_id ) ) . '" class="tpu-galeria-elem" data-caption="' . esc_attr( $felirat ) . '">';
     $html .= wp_get_attachment_image( $kep_id, 'large', false, array( 'alt' => $alt ) );
     $html .= '</a>';
@@ -50,9 +57,9 @@ function tpu_inline_kepek_diszitese( $content, &$hasznalt_idk ) {
         return $content;
     }
 
-    // A jelölőt a class alapján fogjuk meg, a data-id-t a tagen BELÜL keressük —
-    // a böngésző/Quill tetszőleges attribútum-sorrendben szerializálhat
-    // (élesben pl. <img decoding src data-id alt class> sorrend jön).
+    // A jelölőt a class alapján fogjuk meg, az attribútumokat a tagen BELÜL
+    // keressük — a böngésző/Quill tetszőleges attribútum-sorrendben
+    // szerializálhat (élesben pl. <img decoding src data-id alt class> jön).
     $content = preg_replace_callback(
         '/<img[^>]*\btpu-inline-kep\b[^>]*>/i',
         function( $m ) use ( &$hasznalt_idk ) {
@@ -64,16 +71,26 @@ function tpu_inline_kepek_diszitese( $content, &$hasznalt_idk ) {
                 return ''; // törölt/érvénytelen kép — csendben eltűnik
             }
             $hasznalt_idk[] = $kep_id;
-            return tpu_kep_blokk_figure( $kep_id );
+
+            // Opcionális megjelenítési méret a Portál kép-blokkjáról.
+            $meret = preg_match( '/data-meret="([^"]*)"/i', $m[0], $meret_m ) ? $meret_m[1] : '';
+
+            return tpu_kep_blokk_figure( $kep_id, $meret );
         },
         $content
     );
 
     // A wpautop a magányos img-jelölőt <p>-be csomagolta; a figure blokk-elem,
     // ezért a köréje ragadt <p>…</p> héjat leszedjük (kósza üres bekezdések
-    // és érvénytelen beágyazás ellen).
-    $content = preg_replace( '#<p>\s*(<figure class="tpu-kep-blokk">)#', '$1', $content );
+    // és érvénytelen beágyazás ellen). A class-lista bővülhet (méret-változat),
+    // ezért csak a prefixre illesztünk.
+    $content = preg_replace( '#<p>\s*(<figure class="tpu-kep-blokk)#', '$1', $content );
     $content = preg_replace( '#(</figure>)\s*</p>#', '$1', $content );
+
+    // A wpautop a csoportosító divek (tpu-kep-szoveg / tpu-galeria-sor) körül
+    // hagyhat teljesen üres bekezdéseket — ezeket leszedjük. (A szándékos üres
+    // sor a Quill-ből <p><br></p>-ként jön, azt ez nem érinti.)
+    $content = preg_replace( '#<p>\s*</p>#', '', $content );
 
     return $content;
 }
