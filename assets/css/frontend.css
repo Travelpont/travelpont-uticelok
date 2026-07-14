@@ -249,6 +249,16 @@
 
 .tpu-kep-szoveg--jobb .tpu-kep-blokk { order: 2; }
 
+/* A kép-oszlop aránya a Portálon a párosban választott képméret szerint
+   (a belső kép data-meret jelölőjéből kapja a figure a --kicsi/--teljes
+   osztályt). A :where() nullázza a :has() specificitását, így a lenti
+   mobil-szabály (1 oszlop) továbbra is felülírja. A --jobb változatnál a
+   kép az order miatt a MÁSODIK oszlopba kerül, ezért ott tükrözünk. */
+.tpu-kep-szoveg:where(:has(.tpu-kep-blokk--kicsi))        { grid-template-columns: 3fr 7fr; }
+.tpu-kep-szoveg:where(:has(.tpu-kep-blokk--teljes))       { grid-template-columns: 3fr 2fr; }
+.tpu-kep-szoveg--jobb:where(:has(.tpu-kep-blokk--kicsi))  { grid-template-columns: 7fr 3fr; }
+.tpu-kep-szoveg--jobb:where(:has(.tpu-kep-blokk--teljes)) { grid-template-columns: 2fr 3fr; }
+
 .tpu-kep-szoveg-torzs > :first-child { margin-top: 0; }
 .tpu-kep-szoveg-torzs > :last-child  { margin-bottom: 0; }
 
