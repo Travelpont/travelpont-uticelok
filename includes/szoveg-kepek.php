@@ -298,3 +298,32 @@ function tpu_gyik_schema_json( $content ) {
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
     );
 }
+
+/**
+ * Publikus renderelő tetszőleges tpu-formátumú HTML-hez, bejegyzéstől
+ * függetlenül – a travelpont-kezdolap "Szabad szekció" modulja hívja
+ * function_exists() guarddal. A single-display.php the_content láncának
+ * bejegyzés-független része, egyben.
+ *
+ * Eltérés a single-oldali lánctól: nincs bejegyzés-galéria, ezért a
+ * fotó-mozaik helyjelző (ha a szerkesztő betette) csendben eltűnik.
+ * A GYIK-schema a meglévő wp_footer hookon íródik ki; ha egy oldalon több
+ * tartalom is állít GYIK-et, az utolsó nyer (elfogadott egyszerűsítés).
+ */
+function tpu_render_tartalom( $html ) {
+    $hasznalt = array();
+    $content  = tpu_inline_kepek_diszitese( (string) $html, $hasznalt );
+    $content  = tpu_fotomozaik_beillesztes( $content, array(), $hasznalt );
+    $content  = tpu_cta_diszitese( $content );
+    $content  = tpu_video_render( $content );
+    $content  = tpu_terkep_widget_render( $content );
+    $content  = tpu_ajanlat_widget_render( $content );
+    $content  = tpu_uticel_widget_render( $content );
+
+    $gyik_schema = tpu_gyik_schema_json( $content );
+    if ( $gyik_schema ) {
+        $GLOBALS['tpu_gyik_schema'] = $gyik_schema;
+    }
+
+    return $content;
+}
