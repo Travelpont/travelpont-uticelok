@@ -758,4 +758,12 @@
         font-size: 1.6rem;
         line-height: 1.25;
     }
+
+    /* A mozaik-csempék felirata a ~170px-es csempén 1rem-mel szó közben
+       tört ("Niederösterr eich") – kisebb betűvel a hosszú német névalak
+       is egyben marad. */
+    .tpu-mozaik-nev {
+        font-size: .82rem;
+        padding: 1.1rem .55rem .45rem;
+    }
 }

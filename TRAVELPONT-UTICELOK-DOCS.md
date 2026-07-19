@@ -1,6 +1,9 @@
 # Travelpont Úticélok plugin – dokumentáció
 
-> Verzió: 1.20.2 · A Travelpont Ajánlatok plugin architektúráját követi
+> Verzió: 1.20.3 · A Travelpont Ajánlatok plugin architektúráját követi
+> (1.20.3: a mozaik-csempe felirata mobilon kisebb [.82rem] – a ~170px-es
+> csempén az 1rem-es hosszú német névalak ["(Niederösterreich)"] szó közben
+> tört; a kisebb betűvel egyben marad. Playwright-ellenőrzéssel.)
 > (1.20.2: mobil-szélesítés – a téma tartalom-kártyájának paddingje
 > mérsékelve `.single-uticel`-en [az Ajánlatok v1.13.1 mintája]: a ~390px-es
 > kijelzőn a tartalom ~290px-re szűkült, a régió-csempék feliratai szó
