@@ -752,30 +752,38 @@
 @media (max-width: 600px) {
     /* Teljes szélig érő (edge-to-edge) mobil nézet – az Ajánlatok plugin
        azonos mintája: a téma oldalsó térköze és a kártya-keret eltűnik,
-       a fehér felület a képernyő széléig fut. CSAK az úticél-oldalakon. */
-    .single-uticel .content-container.site-container {
+       a fehér felület a képernyő széléig fut. Érvényes az úticél-aloldalon
+       ÉS minden sima oldalon, amin úticél-rács van (pl. az /uticelok/ lista). */
+    .single-uticel .content-container.site-container,
+    body.page:has(.tpu-grid) .content-container.site-container {
         padding-left: 0;
         padding-right: 0;
     }
 
-    .single-uticel .content-area {
+    .single-uticel .content-area,
+    body.page:has(.tpu-grid) .content-area {
         margin-top: 0;
         margin-bottom: 0;
     }
 
-    .single-uticel .entry.single-entry {
+    .single-uticel .entry.single-entry,
+    body.page:has(.tpu-grid) .entry.single-entry {
         box-shadow: none;
         border-radius: 0;
     }
 
     /* Az oldalsáv (mobilon a tartalom alatt) ne tapadjon a képernyő szélére */
-    .single-uticel .primary-sidebar {
-        padding-left: 1rem;
-        padding-right: 1rem;
+    .single-uticel .primary-sidebar,
+    body.page:has(.tpu-grid) .primary-sidebar {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
     }
 
-    .single-uticel .entry-content-wrap {
-        padding: 1.25rem 1rem;
+    /* A tartalom oldaltávja: 20px – éltől élig futó felületen a 16px
+       kevésnek bizonyult, a betűk a kijelző szélére estek */
+    .single-uticel .entry-content-wrap,
+    body.page:has(.tpu-grid) .entry-content-wrap {
+        padding: 1.25rem;
     }
 
     .single-uticel h1.entry-title {

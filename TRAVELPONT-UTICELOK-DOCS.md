@@ -1,6 +1,10 @@
 # Travelpont Úticélok plugin – dokumentáció
 
-> Verzió: 1.20.4 · A Travelpont Ajánlatok plugin architektúráját követi
+> Verzió: 1.20.5 · A Travelpont Ajánlatok plugin architektúráját követi
+> (1.20.5: az edge-to-edge mobil nézet kiterjesztve az úticél-rácsot
+> tartalmazó sima oldalakra is [`body.page:has(.tpu-grid)` – pl. az
+> /uticelok/ lista], tartalom-oldaltáv 16px→20px. Az Ajánlatok v1.17.3
+> párja.)
 > (1.20.4: teljes szélig érő [edge-to-edge] mobil nézet az úticél-oldalakon
 > – az Ajánlatok v1.17.2 azonos mintája: ≤600px-en a téma oldalsó térköze
 > és a kártya-keret eltűnik, a fehér felület a képernyő széléig fut, az
