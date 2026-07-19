@@ -742,3 +742,20 @@
         font-size: .82rem;
     }
 }
+
+/* ═══ Mobil: az úticél-oldal kitöltse a keskeny kijelzőt (v1.20.2) ════════
+   Ugyanaz a minta, mint az Ajánlatok plugin v1.13.1-es javítása: a téma
+   (Kadence) fehér tartalom-kártyájának nagy belső paddingje a ~390px-es
+   kijelzőn ~290px-re szűkítette a tartalmat – a régió-csempék feliratai
+   szó közben törtek ("Niederösterr eich"), minden blokk össze volt nyomva.
+   A paddinget mérsékeljük, CSAK az úticél-oldalakon. */
+@media (max-width: 600px) {
+    .single-uticel .entry-content-wrap {
+        padding: 1.25rem 1rem;
+    }
+
+    .single-uticel h1.entry-title {
+        font-size: 1.6rem;
+        line-height: 1.25;
+    }
+}

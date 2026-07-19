@@ -1,6 +1,10 @@
 # Travelpont Úticélok plugin – dokumentáció
 
-> Verzió: 1.20.1 · A Travelpont Ajánlatok plugin architektúráját követi
+> Verzió: 1.20.2 · A Travelpont Ajánlatok plugin architektúráját követi
+> (1.20.2: mobil-szélesítés – a téma tartalom-kártyájának paddingje
+> mérsékelve `.single-uticel`-en [az Ajánlatok v1.13.1 mintája]: a ~390px-es
+> kijelzőn a tartalom ~290px-re szűkült, a régió-csempék feliratai szó
+> közben törtek. Kisebb H1 is. Playwright-screenshot alapján azonosítva.)
 > (1.20.1: az „Ajánlataink ehhez az úticélhoz" tartalmi blokk KIVEZETVE a
 > `single-content.php`-ból [Gabesz döntése, 2026-07-19] – az ajánlatok az
 > OLDALSÁVBÓL jönnek: `[travelpont_ajanlatok limit="4" uticel="aktualis"
