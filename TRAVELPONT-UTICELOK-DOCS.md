@@ -1,6 +1,16 @@
 # Travelpont Úticélok plugin – dokumentáció
 
-> Verzió: 1.8.0 · A Travelpont Ajánlatok plugin architektúráját követi
+> Verzió: 1.20.1 · A Travelpont Ajánlatok plugin architektúráját követi
+> (1.20.1: az „Ajánlataink ehhez az úticélhoz" tartalmi blokk KIVEZETVE a
+> `single-content.php`-ból [Gabesz döntése, 2026-07-19] – az ajánlatok az
+> OLDALSÁVBÓL jönnek: `[travelpont_ajanlatok limit="4" uticel="aktualis"
+> oszlopok="1" nezet="kompakt"]` [Travelpont Ajánlatok v1.17.0 shortcode,
+> azonos kör: úticél + leszármazottak, a `tpu_get_leszarmazott_idk()`
+> helperre építve]. A blokk-ág üresen megmaradt, hogy a Portálban mentett
+> blokk-sorrendek ne törjenek. FIGYELEM: az oldalsáv widget + Kadence
+> elrendezés kézi beállítás – addig az úticél-oldalon nincs ajánlat-szekció.
+> [Megjegyzés: a docs-fejléc verziója sokáig 1.8.0-n ragadt, most a plugin
+> tényleges verziójához igazítva.])
 > (`D:\travelpont.hu\_Saját_pluginek\travelpont-ajanlatok\`)
 > SZABÁLY: minden módosításkor verziót emelünk a fő fájl fejlécében
 > (cache-buster + követhetőség).

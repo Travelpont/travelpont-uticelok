@@ -148,37 +148,15 @@ $sorrend = ( $szint === 'varos' ) ? array( 'ajanlatok', 'gyerekek' ) : array( 'g
                 }
             endif;
 
-        elseif ( $blokk === 'ajanlatok' && post_type_exists( 'ajanlat' ) ) :
-            $ajanlatok_query = new WP_Query( array(
-                'post_type'      => 'ajanlat',
-                'post_status'    => 'publish',
-                'posts_per_page' => -1,
-                'meta_query'     => array(
-                    array(
-                        'key'     => 'tpa_uticel',
-                        'value'   => $sajat_es_leszarmazottak,
-                        'compare' => 'IN',
-                    ),
-                ),
-            ) );
-            if ( $ajanlatok_query->have_posts() ) :
-                ?>
-                <h2 class="tpu-single-alcim">Ajánlataink ehhez az úticélhoz</h2>
-                <?php if ( function_exists( 'tpa_mezo' ) && defined( 'TPA_PATH' ) ) : ?>
-                    <div class="tpa-grid">
-                        <?php while ( $ajanlatok_query->have_posts() ) : $ajanlatok_query->the_post(); ?>
-                            <?php include TPA_PATH . 'templates/card-template.php'; ?>
-                        <?php endwhile; ?>
-                    </div>
-                <?php else : ?>
-                    <ul class="tpu-egyszeru-lista">
-                        <?php while ( $ajanlatok_query->have_posts() ) : $ajanlatok_query->the_post(); ?>
-                            <li><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></li>
-                        <?php endwhile; ?>
-                    </ul>
-                <?php endif; ?>
-                <?php wp_reset_postdata();
-            endif;
+        elseif ( $blokk === 'ajanlatok' ) :
+            // 2026-07-19: az ajánlat-blokk KIVEZETVE a tartalomból (Gabesz
+            // döntése) – az ajánlatok az OLDALSÁVBÓL jönnek, a Travelpont
+            // Ajánlatok plugin (v1.17.0+) shortcode-jával:
+            //   [travelpont_ajanlatok limit="4" uticel="aktualis" oszlopok="1" nezet="kompakt"]
+            // A shortcode ugyanazt a kört fedi le (úticél + leszármazottak).
+            // A blokk-ág üresen marad, hogy a Portálban mentett blokk-sorrendek
+            // változatlanul érvényesek maradjanak.
+            ;
         endif;
 
     endforeach;
