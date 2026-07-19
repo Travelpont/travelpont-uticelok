@@ -1,6 +1,10 @@
 # Travelpont Úticélok plugin – dokumentáció
 
-> Verzió: 1.20.3 · A Travelpont Ajánlatok plugin architektúráját követi
+> Verzió: 1.20.4 · A Travelpont Ajánlatok plugin architektúráját követi
+> (1.20.4: teljes szélig érő [edge-to-edge] mobil nézet az úticél-oldalakon
+> – az Ajánlatok v1.17.2 azonos mintája: ≤600px-en a téma oldalsó térköze
+> és a kártya-keret eltűnik, a fehér felület a képernyő széléig fut, az
+> oldalsáv 1rem oldaltávot kap.)
 > (1.20.3: a mozaik-csempe felirata mobilon kisebb [.82rem] – a ~170px-es
 > csempén az 1rem-es hosszú német névalak ["(Niederösterreich)"] szó közben
 > tört; a kisebb betűvel egyben marad. Playwright-ellenőrzéssel.)

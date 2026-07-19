@@ -750,6 +750,30 @@
    szó közben törtek ("Niederösterr eich"), minden blokk össze volt nyomva.
    A paddinget mérsékeljük, CSAK az úticél-oldalakon. */
 @media (max-width: 600px) {
+    /* Teljes szélig érő (edge-to-edge) mobil nézet – az Ajánlatok plugin
+       azonos mintája: a téma oldalsó térköze és a kártya-keret eltűnik,
+       a fehér felület a képernyő széléig fut. CSAK az úticél-oldalakon. */
+    .single-uticel .content-container.site-container {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .single-uticel .content-area {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .single-uticel .entry.single-entry {
+        box-shadow: none;
+        border-radius: 0;
+    }
+
+    /* Az oldalsáv (mobilon a tartalom alatt) ne tapadjon a képernyő szélére */
+    .single-uticel .primary-sidebar {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
     .single-uticel .entry-content-wrap {
         padding: 1.25rem 1rem;
     }
